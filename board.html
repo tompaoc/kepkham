@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เก็บคำ — กระเป๋าของวิเศษ</title>
+<meta name="theme-color" content="#00A0DE">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="static/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+<main>
+    <div id="board-area">
+        <div class="skeleton" style="height:70px;"></div>
+        <div class="skeleton" style="height:340px;"></div>
+    </div>
+</main>
+<script>window.KK_STATIC=true;</script>
+<script src="static/kk-local.js"></script>
+<script src="static/app.js"></script>
+<script>
+let boardData = null;
+
+function slotHtml(s, nextSlot) {
+    const cls = [
+        "slot",
+        s.unlocked ? "" : "locked",
+        s.rarity === "gold" ? "r-gold" : "",
+        s.rarity === "legend" ? "r-legend" : "",
+        (!s.unlocked && s.slot === nextSlot) ? "next" : "",
+    ].join(" ");
+    return `<div class="${cls}" data-slot="${s.slot}" title="${escapeHtml(s.unlocked ? s.name_th : s.hint)}">
+        <span class="s-ico">${s.icon}</span>
+    </div>`;
+}
+
+function render() {
+    const b = boardData;
+    const unlockedNormals = b.slots.filter(s => s.rarity === "normal" && s.unlocked).length;
+    // ช่องปกติช่องถัดไปที่จะปลด (ไว้ทำขอบทองกระพริบ + แถบ progress)
+    const nextNormal = b.slots.find(s => s.rarity === "normal" && !s.unlocked);
+    const prog = b.wallet.next_slot_progress;
+
+    document.getElementById("board-area").innerHTML = `
+        <div class="board-head">
+            <div style="font-size:30px;">📚</div>
+            <div style="flex:1;">
+                <div style="font-family:'Baloo 2'; font-weight:700; font-size:17px;">กระดาน 1 — ภาษา & ความรู้</div>
+                <div class="sub">ปลดแล้ว ${b.unlocked_count}/30 · แสตมป์สะสม ${b.wallet.stamps_total} 📮</div>
+            </div>
+            <div style="text-align:right;">
+                <div class="num" style="font-size:20px;">🥟 ${b.wallet.coins}</div>
+                ${nextNormal ? `<div class="sub">ช่องถัดไป: ${prog}/3 📮</div>` : ""}
+            </div>
+        </div>
+
+        <div class="board-grid">
+            ${b.slots.map(s => slotHtml(s, nextNormal ? nextNormal.slot : -1)).join("")}
+        </div>
+
+        <div class="card" style="margin-top:14px; font-size:13px; color:var(--ink-soft); line-height:1.7;">
+            <b style="color:var(--ink);">วิธีได้แสตมป์ 📮 (สูงสุด 3/วัน)</b><br>
+            · จบรอบทบทวนครั้งแรกของวัน +1<br>
+            · จบด่านเกมโซ่คำครั้งแรกของวัน +1<br>
+            · ทบทวนครบเป้า 10 การ์ด +1<br>
+            ทุก 3 แสตมป์ = ปลดของวิเศษชิ้นถัดไป — ช่องทอง 🏅 กับตำนาน 🌈 มีเงื่อนไขพิเศษ (แตะช่องเพื่อดู)
+        </div>
+
+        ${window.KK_STATIC ? `
+        <div class="card" style="font-size:13px; color:var(--ink-soft); line-height:1.7;">
+            <b style="color:var(--ink);">📶 ใช้ตอนไม่มีเน็ต</b><br>
+            เสียงคำที่เคยฟังจะอยู่ในเครื่องอยู่แล้ว แต่คำที่ยังไม่เคยเปิดจะเงียบตอนออฟไลน์ —
+            โหลดเก็บไว้ก่อนตอนต่อ wifi จะได้ใช้ได้ในห้องเย็น
+            <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+                <button class="secondary" id="dl-bar">โหลดเสียงแพ็คบาร์ (~6 MB)</button>
+                <button class="secondary" id="dl-all">โหลดเสียงทั้งหมด (~84 MB)</button>
+            </div>
+            <div id="dl-msg" style="margin-top:8px; min-height:18px;"></div>
+        </div>
+
+        <div class="card" style="font-size:13px; color:var(--ink-soft); line-height:1.7;">
+            <b style="color:var(--ink);">💾 สำรองข้อมูล</b><br>
+            คลังคำกับความคืบหน้าทั้งหมดเก็บอยู่ในมือถือเครื่องนี้เครื่องเดียว
+            ถ้าล้างข้อมูลเบราว์เซอร์หรือเปลี่ยนเครื่อง จะหายหมด — เก็บไฟล์สำรองไว้บ้างนะ
+            <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+                <button class="secondary" id="backup-btn">บันทึกไฟล์สำรอง</button>
+                <button class="secondary" id="restore-btn">กู้จากไฟล์สำรอง</button>
+                <input type="file" id="restore-file" accept="application/json" style="display:none;">
+            </div>
+            <div id="backup-msg" style="margin-top:8px; min-height:18px;"></div>
+        </div>` : ""}`;
+
+    if (window.KK_STATIC) {
+        const dlMsg = document.getElementById("dl-msg");
+        const runDownload = async (scope, btn) => {
+            const both = [document.getElementById("dl-bar"), document.getElementById("dl-all")];
+            both.forEach(b => b.disabled = true);
+            try {
+                const r = await KK.downloadAudio(scope, (done, total, failed) => {
+                    dlMsg.textContent = `กำลังโหลด ${done}/${total} คลิป${failed ? ` · พลาด ${failed}` : ""}`;
+                });
+                dlMsg.textContent = r.failed
+                    ? `โหลดเสร็จ แต่พลาด ${r.failed} คลิป — กดซ้ำอีกทีจะโหลดเฉพาะที่ขาด`
+                    : `เรียบร้อย! เสียง ${r.total} คลิปอยู่ในเครื่องแล้ว ใช้ได้แม้ปิดเน็ต`;
+                sfx.bank();
+            } catch (e) {
+                dlMsg.textContent = "โหลดไม่สำเร็จ — เช็คเน็ตแล้วลองใหม่";
+            }
+            both.forEach(b => b.disabled = false);
+        };
+        document.getElementById("dl-bar").onclick = (e) => runDownload("bar", e.target);
+        document.getElementById("dl-all").onclick = (e) => runDownload("all", e.target);
+
+        const msg = document.getElementById("backup-msg");
+        document.getElementById("backup-btn").onclick = async () => {
+            await KK.flush();
+            KK.exportBackup();
+            msg.textContent = "บันทึกแล้ว — เก็บไฟล์ไว้ที่ปลอดภัยนะ";
+        };
+        document.getElementById("restore-btn").onclick = () => document.getElementById("restore-file").click();
+        document.getElementById("restore-file").onchange = async (e) => {
+            const f = e.target.files[0];
+            if (!f) return;
+            try {
+                await KK.importBackup(f);
+                msg.textContent = "กู้ข้อมูลสำเร็จ กำลังโหลดใหม่...";
+                setTimeout(() => location.reload(), 700);
+            } catch (err) { msg.textContent = "ไฟล์สำรองไม่ถูกต้อง"; }
+        };
+    }
+
+    document.querySelectorAll("[data-slot]").forEach(el => {
+        el.onclick = () => {
+            const s = boardData.slots.find(x => x.slot === parseInt(el.dataset.slot));
+            if (s.unlocked) {
+                showQuoteCard(s);
+            } else {
+                showLockedHint(s);
+            }
+        };
+    });
+}
+
+function showLockedHint(s) {
+    const need = s.rarity === "normal"
+        ? `สะสมแสตมป์ 📮 ไปเรื่อย ๆ (ตอนนี้ ${boardData.wallet.next_slot_progress}/3 สำหรับช่องถัดไป)`
+        : s.hint;
+    const overlay = document.createElement("div");
+    overlay.className = "kk-overlay";
+    overlay.innerHTML = `
+        <div class="quote-card">
+            <div class="q-ico" style="filter:brightness(0) opacity(.3); animation:none;">${s.icon}</div>
+            <div class="q-name">??? </div>
+            <div class="q-rarity">${s.rarity === "gold" ? "🏅 ช่องทอง" : s.rarity === "legend" ? "🌈 ช่องตำนาน" : "ช่องปกติ"}</div>
+            <hr>
+            <div class="q-th" style="font-size:14.5px;">คำใบ้: ${escapeHtml(s.hint)}</div>
+            ${s.rarity === "normal" ? `<div class="q-by">${escapeHtml(need)}</div>` : `<div class="q-by">ปลดเมื่อ: ${escapeHtml(s.hint)}</div>`}
+            <button class="secondary" style="margin-top:16px; width:100%;" data-close>ปิด</button>
+        </div>`;
+    overlay.addEventListener("click", (e) => {
+        if (e.target === overlay || e.target.closest("[data-close]")) overlay.remove();
+    });
+    document.body.appendChild(overlay);
+}
+
+initChrome("board");
+safeLoad("board-area", async () => {
+    boardData = await apiGet("/api/board");
+    render();
+});
+</script>
+</body>
+</html>

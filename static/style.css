@@ -1,0 +1,534 @@
+/* ============================================================
+   KepKham UI v2 — "Doraemon-mood" design system (art-ready)
+   โทนจาก ART_PLAN v5: ฟ้าสด/ครีม/ทอง สนุกแบบอนิเมะแต่อ่านสบาย
+   ============================================================ */
+
+:root {
+    /* สี */
+    --dora-blue:  #00A0DE;
+    --dora-deep:  #0077B6;
+    --dora-red:   #E4472B;
+    --bell-gold:  #F3B93F;
+    --bell-deep:  #D0941C;
+    --cream:      #FBF1DA;
+    --card:       #FFFFFF;
+    --ink:        #3B2F2F;
+    --ink-soft:   #8A6B4A;
+    --green:      #46B450;
+    --green-deep: #2E8B38;
+    --line:       #EFE3C8;
+    --board-frame: #EADFC4;
+    --board-border:#D9C89E;
+    --slot-bg:     #FFF9EA;
+    --slot-border: #E3D5B4;
+    --example-green:#55684A;
+    --note-gold:   #B8862E;
+
+    /* ระยะ/มุม/เงา */
+    --r-card: 16px;
+    --r-btn: 14px;
+    --shadow-card: 0 2px 10px rgba(59,47,47,.08);
+    --shadow-pop:  0 8px 24px rgba(59,47,47,.16);
+}
+
+/* ---------- Dark mode (ตาม OS — ทอมเลิกกะดึก มือถือมักเข้าโหมดมืดเองอยู่แล้ว) ---------- */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --cream:      #211a11;
+        --card:       #322818;
+        --ink:        #F2E7D4;
+        --ink-soft:   #C9B08E;
+        --line:       #4A3B26;
+        --board-frame:#2c2416;
+        --board-border:#4A3B26;
+        --slot-bg:    #3a2f1d;
+        --slot-border:#4A3B26;
+        --example-green:#A4C68D;
+        --note-gold:  #DBAA52;
+        --shadow-card: 0 2px 10px rgba(0,0,0,.45);
+        --shadow-pop:  0 8px 24px rgba(0,0,0,.6);
+    }
+    .unit-icon { background: #1c3d4d; }
+    .unit-card.pinned { background: linear-gradient(135deg, #3b2f14 0%, #46370f 100%); }
+    .tag-slang { background: #46212e; color: #F4C0D1; }
+    .tag-casual { background: #42310e; color: #FAC775; }
+    .tag-neutral { background: #14314a; color: #B5D4F4; }
+    .tag-formal { background: #253a15; color: #C0DD97; }
+    .tag-aussie { background: #0e3a2e; color: #9FE1CB; }
+    .tag-irish { background: #262254; color: #CECBF6; }
+    .tag-scottish { background: #45210f; color: #F5C4B3; }
+    .tag-british { background: #35342c; color: #D3D1C7; }
+    .skeleton { background: linear-gradient(90deg, #2e2515 25%, #3a2f1d 50%, #2e2515 75%); background-size: 200% 100%; }
+    .choice-grid button.hit { color: #fff; }
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Itim', -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .num { font-family: 'Baloo 2', 'Itim', sans-serif; font-weight: 700; }
+
+main { max-width: 720px; margin: 0 auto; padding: 16px 16px 40px; }
+
+/* ---------- Header (ฉีดจาก app.js ทุกหน้า) ---------- */
+.kk-header {
+    background: linear-gradient(180deg, var(--dora-blue) 0%, #0090CC 100%);
+    color: #fff;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.10);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    min-height: 56px;
+}
+.kk-header h1 { font-size: 21px; margin: 0; flex-shrink: 0; }
+.kk-header h1 a { color: #fff; text-decoration: none; }
+
+.kk-pills { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.kk-pill {
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14px;
+    background: rgba(255,255,255,.22); color: #fff;
+    padding: 6px 12px; border-radius: 999px; border: 0;
+    display: inline-flex; align-items: center; gap: 4px;
+    cursor: pointer; white-space: nowrap; min-height: 34px;
+}
+.kk-pill:active { transform: scale(.95); }
+.flame-off { filter: grayscale(1) opacity(.6); }
+.flame-goal { display: inline-block; animation: flameDance 1s ease-in-out infinite; }
+
+/* ---------- ไอคอนระบบ (Phosphor duotone SVG, แทน emoji เฉพาะ chrome) ---------- */
+.icon { width: 1em; height: 1em; display: inline-block; vertical-align: -0.15em; flex-shrink: 0; }
+.icon.pill-ic { width: 15px; height: 15px; vertical-align: -2px; }
+
+.top-nav { display: flex; gap: 6px; }
+.top-nav a {
+    color: #fff; text-decoration: none; font-size: 14px;
+    padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.14);
+    transition: background .15s;
+}
+.top-nav a:hover, .top-nav a.active { background: rgba(255,255,255,.32); }
+
+/* ---------- Bottom tab bar (มือถือ) ---------- */
+.tabbar {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 62px;
+    background: var(--card); border-top: 2px solid var(--line);
+    display: flex; z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -2px 12px rgba(59,47,47,.06);
+}
+.tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 1px; font-size: 11px; color: var(--ink-soft);
+    text-decoration: none; min-height: 48px;
+}
+.tab .t-ico { display: flex; transition: transform .15s; }
+.tab .t-ico .icon { width: 21px; height: 21px; }
+.tab.active { color: var(--dora-blue); font-weight: 700; }
+.tab.active .t-ico { transform: translateY(-2px) scale(1.12); }
+
+@media (min-width: 720px) {
+    .tabbar { display: none; }
+}
+@media (max-width: 719px) {
+    .top-nav { display: none; }
+    body { padding-bottom: 76px; }
+    main { padding-left: 12px; padding-right: 12px; }
+}
+
+/* ---------- ปุ่ม 3D ---------- */
+button, .btn {
+    font-family: 'Itim', sans-serif; font-size: 15px;
+    border: 0; border-radius: var(--r-btn); cursor: pointer;
+    padding: 12px 20px; min-height: 46px;
+    background: var(--dora-blue); color: #fff;
+    box-shadow: 0 4px 0 var(--dora-deep);
+    transition: transform .06s, box-shadow .06s, opacity .15s;
+}
+button:active, .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--dora-deep); }
+button:disabled { opacity: .45; cursor: default; transform: none; }
+
+button.gold, .btn.gold {
+    background: var(--bell-gold); color: #4A3200;
+    font-family: 'Baloo 2', 'Itim', sans-serif; font-weight: 700;
+    box-shadow: 0 4px 0 var(--bell-deep);
+}
+button.gold:active { box-shadow: 0 0 0 var(--bell-deep); }
+
+button.green { background: var(--green); box-shadow: 0 4px 0 var(--green-deep); }
+button.green:active { box-shadow: 0 0 0 var(--green-deep); }
+
+button.danger { background: var(--dora-red); box-shadow: 0 4px 0 #B23018; }
+button.danger:active { box-shadow: 0 0 0 #B23018; }
+
+button.secondary {
+    background: var(--card); color: var(--ink);
+    border: 2px solid var(--line); box-shadow: 0 3px 0 var(--line);
+}
+button.secondary:active { box-shadow: 0 0 0 var(--line); }
+
+button.big { font-size: 17px; padding: 15px 24px; width: 100%; min-height: 54px; }
+
+/* ---------- Cards ---------- */
+.card {
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+    border-radius: var(--r-card);
+    padding: 16px 18px;
+    margin-bottom: 12px;
+}
+
+.section-label {
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14px;
+    color: var(--note-gold); letter-spacing: .03em;
+    margin: 22px 0 10px; display: flex; align-items: center; gap: 6px;
+}
+.section-label:first-child { margin-top: 0; }
+
+/* ---------- Today Hero ---------- */
+.hero {
+    background: linear-gradient(135deg, var(--dora-blue) 0%, var(--dora-deep) 100%);
+    color: #fff; border-radius: 20px; padding: 20px;
+    box-shadow: 0 4px 16px rgba(0,119,182,.28);
+    margin-bottom: 18px;
+    position: relative; overflow: hidden;
+}
+.hero::after {  /* วงกลมตกแต่งจางๆ มุมขวา — กลิ่นกระดิ่งโดเรมอน */
+    content: ""; position: absolute; right: -36px; top: -36px;
+    width: 130px; height: 130px; border-radius: 50%;
+    background: rgba(255,255,255,.09);
+}
+.hero .greet { font-size: 15px; opacity: .92; margin: 0 0 10px; }
+.hero-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.hero-streak { flex: 1; }
+.hero-streak .num { font-size: 36px; line-height: 1.05; }
+.hero-streak .lbl { font-size: 13px; opacity: .9; }
+.hero .btn-cta { position: relative; z-index: 1; }
+.hero .sub-cta {
+    display: block; text-align: center; color: rgba(255,255,255,.85);
+    font-size: 13.5px; margin-top: 10px; text-decoration: underline;
+    background: none; border: none; box-shadow: none; width: 100%;
+    padding: 6px; min-height: 0; cursor: pointer;
+}
+.hero .sub-cta:active { transform: none; }
+
+/* ---------- Zone path ---------- */
+.zone-path { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 2px; }
+.zone-chip {
+    flex: 1; min-width: 88px; background: var(--card); border-radius: 12px;
+    padding: 8px 12px; box-shadow: var(--shadow-card); border: 2px solid transparent;
+}
+.zone-chip.current { border-color: var(--bell-gold); }
+.zone-chip.done { opacity: .8; }
+.zone-chip .z-name { font-family: 'Baloo 2'; font-weight: 700; font-size: 15px; }
+.zone-chip .z-pct { font-size: 11.5px; color: var(--ink-soft); }
+.zone-chip .z-bar { height: 5px; background: var(--line); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+.zone-chip .z-bar > div { height: 100%; background: var(--dora-blue); border-radius: 3px; }
+.zone-chip.done .z-bar > div { background: var(--green); }
+
+/* ---------- Unit cards ---------- */
+.unit-card {
+    display: flex; align-items: center; gap: 13px; cursor: pointer;
+    transition: transform .12s, box-shadow .12s;
+    padding: 13px 15px;
+}
+.unit-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-pop); }
+.unit-card.pinned { background: linear-gradient(135deg, #FFF6E0 0%, #FFEFC8 100%); border: 2px solid var(--bell-gold); }
+.unit-card.complete { opacity: .72; }
+
+.unit-icon {
+    width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+    background: #E6F1FB;
+}
+.unit-card.pinned .unit-icon { background: var(--bell-gold); }
+.unit-title { flex: 1; min-width: 0; }
+.unit-title .name { font-size: 16px; display: block; margin-bottom: 1px; }
+.unit-title .meta { font-size: 12px; color: var(--ink-soft); }
+
+.unit-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.zone-badge {
+    font-family: 'Baloo 2'; font-size: 11px; font-weight: 700; padding: 3px 9px;
+    border-radius: 999px; color: #fff; min-width: 26px; text-align: center;
+}
+.zone-A1 { background: #6BBF59; }
+.zone-A2 { background: #4DA3D4; }
+.zone-B1 { background: var(--bell-gold); }
+.zone-B2 { background: #E8863C; }
+.zone-C1 { background: #E60012; }
+
+/* วงแหวน progress จิ๋วบน unit card (SVG) */
+.mini-ring { width: 30px; height: 30px; }
+.mini-ring .bg { stroke: var(--line); }
+.mini-ring .fg { stroke: var(--dora-blue); transition: stroke-dashoffset .4s; }
+.mini-ring.full .fg { stroke: var(--green); }
+.mini-ring text { font-family: 'Baloo 2'; font-weight: 700; font-size: 9px; fill: var(--ink-soft); }
+
+/* ---------- Item rows (list view) ---------- */
+.item-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 0; border-bottom: 1px solid var(--line);
+}
+.item-row:last-child { border-bottom: none; }
+.item-main { flex: 1; min-width: 0; }
+.item-en { font-size: 17px; display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.item-th { color: var(--ink-soft); font-size: 14px; margin-top: 2px; }
+.item-note { font-size: 12.5px; color: var(--note-gold); margin-top: 6px; }
+.item-example { font-size: 12.5px; color: var(--example-green); margin-top: 4px; font-style: italic; }
+.item-example mark { background: #FDEBB8; border-radius: 3px; padding: 0 2px; }
+
+.tag {
+    display: inline-block; font-size: 10.5px; padding: 2px 8px;
+    border-radius: 999px; margin-right: 4px;
+}
+.tag-slang { background: #FBEAF0; color: #993556; }
+.tag-casual { background: #FDEBC8; color: #8A5A10; }
+.tag-neutral { background: #E6F1FB; color: #185FA5; }
+.tag-formal { background: #EAF3DE; color: #3B6D11; }
+.tag-aussie { background: #E1F5EE; color: #085041; }
+.tag-irish { background: #EEEDFE; color: #3C3489; }
+.tag-scottish { background: #FAECE7; color: #712B13; }
+.tag-british { background: #F1EFE8; color: #444441; }
+
+.play-btn {
+    width: 38px; height: 38px; border-radius: 50%; min-height: 38px;
+    background: var(--dora-blue); color: #fff; border: none; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0; padding: 0;
+    box-shadow: 0 3px 0 var(--dora-deep);
+}
+.play-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--dora-deep); }
+.play-btn.loading { opacity: .5; }
+.play-btn.slow { background: var(--ink-soft); box-shadow: 0 3px 0 #6B5238; font-size: 13px; }
+.play-btn.slow:active { box-shadow: 0 0 0 #6B5238; }
+
+.collect-btn { min-height: 40px; padding: 8px 14px; font-size: 13.5px; }
+.collect-btn.collected { background: var(--green); color: #fff; border: 0; box-shadow: 0 3px 0 var(--green-deep); }
+
+/* ---------- Flashcard (Review v2 — พลิกได้) ---------- */
+.flip-scene { perspective: 1200px; margin-bottom: 12px; }
+.flip-card {
+    position: relative; width: 100%; min-height: 320px;
+    transform-style: preserve-3d; transition: transform .45s cubic-bezier(.4,.1,.2,1);
+}
+.flip-card.flipped { transform: rotateY(180deg); }
+.flip-face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    background: var(--card); border-radius: 20px; box-shadow: var(--shadow-card);
+    padding: 22px 18px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+}
+.flip-back { transform: rotateY(180deg); justify-content: flex-start; overflow-y: auto; }
+
+.fc-meta { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 12px; }
+.fc-en { font-size: 27px; font-family: 'Baloo 2'; font-weight: 700; margin: 4px 0 10px; }
+.fc-ear-icon { font-size: 52px; margin: 10px 0; animation: floaty 2.4s ease-in-out infinite; }
+.fc-th-big { font-size: 22px; margin: 4px 0 8px; }
+.fc-note { font-size: 13.5px; color: var(--note-gold); margin-top: 8px; }
+.fc-example { font-size: 14px; color: var(--example-green); margin-top: 10px; font-style: italic; line-height: 1.55; }
+.fc-example mark { background: #FDEBB8; border-radius: 3px; padding: 0 2px; font-style: normal; }
+.fc-example-th { font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; }
+
+.review-actions { display: flex; gap: 8px; margin-top: 4px; }
+.review-actions .ra {
+    flex: 1; display: flex; flex-direction: column; gap: 1px;
+    min-height: 56px; font-size: 16px; font-family: 'Baloo 2'; font-weight: 700;
+    padding: 8px 4px;
+}
+.review-actions .ra small { font-size: 10.5px; font-weight: 400; font-family: 'Itim'; opacity: .85; }
+
+.progress-bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 0 0 14px; }
+.progress-bar > div { height: 100%; background: var(--dora-blue); border-radius: 4px; transition: width .3s; }
+
+/* ---------- เกมโซ่คำ v2 ---------- */
+.chain-links {
+    display: flex; gap: 2px; justify-content: center; flex-wrap: wrap;
+    min-height: 26px; font-size: 18px; margin: 6px 0;
+}
+.chain-links .lnk { animation: popIn .25s ease; }
+
+.choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.choice-grid button {
+    background: var(--card); color: var(--ink); font-size: 15px;
+    border: 2px solid var(--line); box-shadow: 0 3px 0 var(--line);
+    padding: 14px 10px; min-height: 58px; line-height: 1.35;
+}
+.choice-grid button:active { box-shadow: 0 0 0 var(--line); }
+.choice-grid button.hit {
+    background: var(--green); color: #fff; border-color: var(--green-deep);
+    box-shadow: 0 3px 0 var(--green-deep); animation: pop .2s ease;
+}
+.choice-grid button.miss {
+    background: var(--dora-red); color: #fff; border-color: #B23018;
+    box-shadow: 0 3px 0 #B23018;
+}
+
+.dwell-card { text-align: left; }
+.dwell-card .d-head { font-size: 15px; color: var(--dora-red); font-family: 'Baloo 2'; font-weight: 700; }
+.dwell-card .d-answer { font-size: 21px; font-family: 'Baloo 2'; font-weight: 700; margin: 8px 0 2px; }
+
+.stars { font-size: 34px; letter-spacing: 4px; margin: 8px 0; }
+.stars .dim { filter: grayscale(1) opacity(.35); }
+
+/* ---------- Gadget Board ---------- */
+.board-head {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+    background: linear-gradient(135deg, #FFF6E0, #FFEFC8);
+    border: 2px solid var(--bell-gold); border-radius: var(--r-card); padding: 12px 16px;
+}
+.board-head .num { font-size: 22px; }
+.board-head .sub { font-size: 12px; color: var(--ink-soft); }
+
+.board-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+    background: var(--board-frame); border: 3px solid var(--board-border); border-radius: 18px; padding: 14px;
+}
+.slot {
+    aspect-ratio: 1; border-radius: 13px; background: var(--slot-bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; cursor: pointer; position: relative;
+    border: 2px solid var(--slot-border);
+    transition: transform .12s;
+}
+.slot:active { transform: scale(.93); }
+.slot.locked { color: #000; }
+.slot.locked .s-ico { filter: brightness(0) opacity(.28); }
+.slot.locked::after {
+    content: "?"; position: absolute; font-family: 'Baloo 2'; font-weight: 700;
+    font-size: 15px; color: var(--ink-soft); right: 5px; bottom: 3px;
+}
+.slot.next {
+    border-color: var(--bell-gold);
+    animation: pulseGold 2s ease-in-out infinite;
+}
+.slot.r-gold { border-color: var(--bell-gold); background: var(--slot-bg); }
+.slot.r-legend {
+    border-width: 2px; border-style: solid; border-color: transparent;
+    background:
+        linear-gradient(var(--slot-bg), var(--slot-bg)) padding-box,
+        linear-gradient(90deg, #F3B93F, #E4472B, #00A0DE, #F3B93F) border-box;
+    background-size: auto, 300% 100%;
+    animation: rainbowShift 4s linear infinite;
+}
+
+/* modal ปลดของ / ดูการ์ดคำคม */
+.kk-overlay {
+    position: fixed; inset: 0; background: rgba(35,25,10,.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 90; padding: 20px; animation: fadeIn .2s ease;
+}
+.quote-card {
+    background: var(--card); border-radius: 20px; max-width: 380px; width: 100%;
+    padding: 26px 22px; text-align: center; box-shadow: var(--shadow-pop);
+    animation: popIn .35s cubic-bezier(.3,1.5,.5,1);
+}
+.quote-card .q-ico { font-size: 58px; animation: floaty 2.4s ease-in-out infinite; }
+.quote-card .q-name { font-family: 'Baloo 2'; font-weight: 700; font-size: 19px; margin: 6px 0 2px; }
+.quote-card .q-rarity { font-size: 11.5px; color: var(--ink-soft); margin-bottom: 14px; }
+.quote-card .q-en { font-size: 16px; line-height: 1.5; font-style: italic; }
+.quote-card .q-th { font-size: 13.5px; color: var(--ink-soft); margin-top: 6px; line-height: 1.55; }
+.quote-card .q-by { font-size: 12px; color: var(--note-gold); margin-top: 10px; }
+.quote-card hr { border: 0; border-top: 1px dashed var(--line); margin: 14px 0; }
+
+/* ---------- Empty / error / skeleton ---------- */
+.empty-state {
+    text-align: center; padding: 52px 20px; color: var(--ink-soft);
+    background: var(--card); border-radius: var(--r-card);
+}
+.error-card { text-align: center; padding: 40px 20px; }
+.error-card .e-ico { font-size: 44px; }
+
+.skeleton {
+    border-radius: var(--r-card); background: linear-gradient(90deg, #F3EAD5 25%, #EFE3C8 50%, #F3EAD5 75%);
+    background-size: 200% 100%; animation: shimmer 1.2s infinite;
+    height: 72px; margin-bottom: 12px;
+}
+
+/* ---------- Forms ---------- */
+textarea, input[type=text] {
+    font-family: 'Itim', sans-serif; font-size: 15px; border: 2px solid var(--line);
+    border-radius: 12px; padding: 12px 14px; width: 100%; background: var(--card);
+    color: var(--ink);
+}
+textarea:focus, input[type=text]:focus { outline: none; border-color: var(--dora-blue); }
+
+/* ---------- Animations ---------- */
+@keyframes pop { 0% { transform: scale(1); } 45% { transform: scale(1.13); } 100% { transform: scale(1); } }
+@keyframes popIn { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-7px); } 40% { transform: translateX(7px); }
+    60% { transform: translateX(-5px); } 80% { transform: translateX(5px); }
+}
+.shake { animation: shake .32s ease; }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes flameDance { 0%, 100% { transform: scale(1) rotate(-3deg); } 50% { transform: scale(1.14) rotate(3deg); } }
+@keyframes pulseGold {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(243,185,63,.55); }
+    50% { box-shadow: 0 0 0 7px rgba(243,185,63,0); }
+}
+@keyframes rainbowShift { 0% { background-position: 0 0, 0% 50%; } 100% { background-position: 0 0, 300% 50%; } }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.coin-fly {
+    position: fixed; z-index: 95; font-size: 22px; pointer-events: none;
+    transition: transform .55s cubic-bezier(.3,-.2,.6,1), opacity .55s;
+}
+
+/* ---------- ค้นหาคำ (หน้าแรก) ---------- */
+.search-wrap { position: relative; margin-bottom: 14px; }
+.search-box {
+    font-family: 'Itim', sans-serif; font-size: 15px; width: 100%;
+    border: 2px solid var(--line); border-radius: 999px; padding: 11px 18px 11px 42px;
+    background: var(--card); color: var(--ink); min-height: 46px;
+}
+.search-box:focus { outline: none; border-color: var(--dora-blue); }
+.search-wrap .s-ico { position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    color: var(--ink-soft); width: 17px; height: 17px; }
+.search-results { margin-bottom: 14px; }
+.search-hit { display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+    background: var(--card); border-radius: 12px; margin-bottom: 6px;
+    box-shadow: var(--shadow-card); cursor: pointer; }
+.search-hit .sh-en { font-size: 15px; }
+.search-hit .sh-th { font-size: 12.5px; color: var(--ink-soft); }
+.search-hit .sh-unit { margin-left: auto; font-size: 11px; color: var(--ink-soft); white-space: nowrap; }
+.search-hit .sh-got { color: var(--green); flex-shrink: 0; }
+
+/* ---------- โซนพับได้ (details) ---------- */
+details.zone-fold > summary { list-style: none; cursor: pointer; }
+details.zone-fold > summary::-webkit-details-marker { display: none; }
+details.zone-fold > summary .fold-arrow { display: inline-block; transition: transform .15s; font-size: 11px; }
+details.zone-fold[open] > summary .fold-arrow { transform: rotate(90deg); }
+
+/* ---------- อื่นๆ ---------- */
+.done-ic { color: var(--green); font-size: 20px; display: inline-flex; }
+.hero-flame { display: inline-flex; vertical-align: -2px; }
+.repair-btn {
+    background: rgba(255,255,255,.18); border: 1px dashed rgba(255,255,255,.55);
+    box-shadow: none; color: #fff; font-size: 13px; padding: 8px 14px; min-height: 38px;
+    border-radius: 999px; margin-top: 10px;
+}
+.repair-btn:active { transform: scale(.96); box-shadow: none; }
+
+/* ---------- เคารพ prefers-reduced-motion (เวียนหัวจาก motion = ปิดให้หมด) ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เก็บคำ — ทบทวน</title>
+<meta name="theme-color" content="#00A0DE">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="static/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+<main>
+    <div id="review-area"><div class="skeleton" style="height:320px;"></div></div>
+</main>
+<script>window.KK_STATIC=true;</script>
+<script src="static/kk-local.js"></script>
+<script src="static/app.js"></script>
+<script>
+let queue = [];
+let idx = 0;
+let session = { done: 0, correct: 0 };  // นับเฉพาะรอบจริง (รอบซ้อม relearn ไม่นับ)
+let lastAttempt = null;
+const params = new URLSearchParams(location.search);
+const LIMIT = parseInt(params.get("limit")) || 0;
+const MIX = params.get("mix") === "1";   // เมนูวันนี้: ทบทวน + คำใหม่ + bar + เซอร์ไพรส์
+const SR_CLASS = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+/* จำลอง SM-2 ฝั่ง client เพื่อพรีวิว "กดแล้วเจออีกทีเมื่อไหร่" ใต้ปุ่ม (สูตรเดียวกับ srs.py) */
+function previewInterval(card, quality) {
+    if (quality < 3) return "เดี๋ยววนกลับมา";
+    const reps = card.repetitions || 0;
+    let d;
+    if (reps === 0) d = 1;
+    else if (reps === 1) d = 6;
+    else d = Math.round(card.interval_days * card.ease_factor);
+    if (d <= 1) return "พรุ่งนี้";
+    if (d < 30) return `${d} วัน`;
+    return `${Math.round(d / 30)} เดือน`;
+}
+
+function highlightExample(example, target) {
+    const esc = escapeHtml(example);
+    const t = escapeHtml(target).replace(/^to /, "");
+    if (!t) return esc;
+    try {
+        const re = new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "i");
+        return esc.replace(re, "<mark>$1</mark>");
+    } catch (e) { return esc; }
+}
+
+function findTargetSpan(example, target) {
+    const t = (target || "").replace(/^to /, "").trim();
+    if (!t || !example) return null;
+    try {
+        const re = new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+        const m = example.match(re);
+        return m ? m[0] : null;
+    } catch (e) { return null; }
+}
+
+function buildCloze(example, span) {
+    return escapeHtml(example).replace(escapeHtml(span), `<span style="border-bottom:2px solid var(--dora-blue); padding:0 4px; font-weight:700;">＿＿＿</span>`);
+}
+
+/* การ์ด 4 โหมด: read / ear / speak / cloze — การ์ดคำใหม่กับรอบซ้อมใช้ read เสมอ */
+function cardMode(i, card) {
+    if (card.kind === "new" || card.relearn) return "read";
+    const base = i % 4;
+    if (base === 1) return "ear";
+    if (base === 2) return "speak";
+    if (base === 3) return findTargetSpan(card.example_en, card.text_en) ? "cloze" : "read";
+    return "read";
+}
+
+/* คะแนนความใกล้เคียง — เป็นแค่คำใบ้ ผู้เรียนกดให้คะแนนเองเสมอ */
+function scoreAttempt(attempt, target) {
+    const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+    const a = new Set(norm(attempt));
+    const t = norm(target);
+    if (!t.length) return 0;
+    return Math.round(t.filter(w => a.has(w)).length / t.length * 100);
+}
+
+/* อุ่นเครื่องเสียงการ์ดถัดไปล่วงหน้า — เสียงจะเด้งทันทีไม่ต้องรอ TTS สร้างสด */
+function prefetchNext() {
+    const nxt = queue[idx + 1];
+    if (!nxt) return;
+    const v = voiceFor(nxt, nxt.unit_id);
+    fetch(`/api/tts?text=${encodeURIComponent(nxt.text_en)}&voice=${v}&rate=normal`).catch(() => {});
+}
+
+function renderCard() {
+    const el = document.getElementById("review-area");
+    if (idx >= queue.length) { finishSession(); return; }
+
+    const card = queue[idx];
+    const mode = cardMode(idx, card);
+    const voice = voiceFor(card, card.unit_id);
+    lastAttempt = null;
+
+    let frontContent, revealBtnHtml = `<button class="big" style="margin-top:22px; max-width:280px;" id="reveal-btn">เฉลย</button>`;
+
+    if (card.kind === "new") {
+        frontContent = `<div style="font-size:13px; color:var(--ink-soft); margin-bottom:6px;">🌱 คำใหม่จาก ${escapeHtml(card.unit_name)}</div>
+           <div class="fc-en">${escapeHtml(card.text_en)}</div>
+           <div style="display:flex; gap:8px; justify-content:center;">
+               <button class="play-btn slow" data-say="${escapeHtml(card.text_en)}" data-voice="${voice}" data-rate="slow" title="ช้า">🐢</button>
+               <button class="play-btn" data-say="${escapeHtml(card.text_en)}" data-voice="${voice}" title="ฟัง">${icon("play")}</button>
+           </div>`;
+        revealBtnHtml = `<button class="big gold" style="margin-top:22px; max-width:280px;" id="reveal-btn">ดูความหมาย</button>`;
+    } else if (mode === "ear") {
+        frontContent = `<div class="fc-ear-icon">${icon("speaker")}</div>
+           <p style="font-size:15px; color:var(--ink-soft); margin:0 0 8px;">ฟังแล้วนึกความหมายในใจ</p>
+           <div style="display:flex; gap:8px; justify-content:center;">
+               <button class="play-btn slow" data-say="${escapeHtml(card.text_en)}" data-voice="${voice}" data-rate="slow" title="ช้า">🐢</button>
+               <button class="play-btn" data-say="${escapeHtml(card.text_en)}" data-voice="${voice}" title="ฟังอีกครั้ง">${icon("play")}</button>
+           </div>`;
+    } else if (mode === "speak") {
+        frontContent = `<div style="font-size:13px; color:var(--ink-soft); margin-bottom:6px;">${icon("mic", "pill-ic")} โหมดพูด — แปลเป็นภาษาอังกฤษ</div>
+           <div class="fc-th-big" style="margin:6px 0 14px;">${escapeHtml(card.text_th || "")}</div>
+           <div style="display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap;">
+               ${SR_CLASS ? `<button class="secondary" id="mic-btn">${icon("mic", "pill-ic")} พูดเลย</button>` : ""}
+           </div>
+           <input type="text" id="speak-input" placeholder="พิมพ์หรือพูดเป็นภาษาอังกฤษ" style="margin-top:12px;">
+           <div id="speak-status" style="font-size:12.5px; color:var(--ink-soft); min-height:18px; margin-top:6px;"></div>`;
+        revealBtnHtml = `<button class="big gold" style="margin-top:14px; max-width:280px;" id="reveal-btn">ตรวจคำตอบ</button>`;
+    } else if (mode === "cloze") {
+        const span = findTargetSpan(card.example_en, card.text_en);
+        frontContent = `<div style="font-size:13px; color:var(--ink-soft); margin-bottom:10px;">${icon("notepencil", "pill-ic")} โหมดเติมคำ</div>
+           <div style="font-size:19px; line-height:1.6;">${buildCloze(card.example_en, span)}</div>
+           ${card.example_th ? `<div style="font-size:13.5px; color:var(--ink-soft); margin-top:8px;">${escapeHtml(card.example_th)}</div>` : ""}
+           <input type="text" id="cloze-input" placeholder="พิมพ์คำที่หายไป" style="margin-top:14px;">
+           <div id="cloze-status" style="font-size:12.5px; color:var(--ink-soft); min-height:18px; margin-top:6px;"></div>`;
+        revealBtnHtml = `<button class="big gold" style="margin-top:14px; max-width:280px;" id="reveal-btn">ตรวจคำตอบ</button>`;
+    } else {
+        frontContent = `<div class="fc-en">${escapeHtml(card.text_en)}</div>
+           <div style="display:flex; gap:8px; justify-content:center;">
+               <button class="play-btn slow" data-say="${escapeHtml(card.text_en)}" data-voice="${voice}" data-rate="slow" title="ช้า">🐢</button>
+               <button class="play-btn" data-say="${escapeHtml(card.text_en)}" data-voice="${voice}" title="ฟัง">${icon("play")}</button>
+           </div>`;
+    }
+
+    const modeLabel = card.kind === "new" ? ""
+        : card.relearn ? " · 🔁 รอบซ้อม"
+        : { ear: ` · โหมดฟัง`, speak: ` · โหมดพูด`, cloze: ` · โหมดเติมคำ` }[mode] || "";
+
+    el.innerHTML = `
+        <div class="progress-bar"><div style="width:${(idx / queue.length) * 100}%"></div></div>
+        <div class="flip-scene">
+            <div class="flip-card" id="flip-card">
+                <div class="flip-face flip-front">
+                    <div class="fc-meta">${idx + 1} / ${queue.length} · ${escapeHtml(card.unit_name)}${modeLabel}</div>
+                    ${frontContent}
+                    ${revealBtnHtml}
+                </div>
+                <div class="flip-face flip-back">
+                    <div class="fc-meta">${idx + 1} / ${queue.length}</div>
+                    <div class="fc-en" style="font-size:21px;">${escapeHtml(card.text_en)}
+                        <button class="play-btn" data-say="${escapeHtml(card.text_en)}" data-voice="${voice}" style="width:32px;height:32px;min-height:32px;font-size:13px;">${icon("play")}</button>
+                    </div>
+                    <div class="fc-th-big">${escapeHtml(card.text_th || "(ยังไม่มีคำแปล)")}</div>
+                    <div id="attempt-feedback"></div>
+                    ${card.note_th ? `<div class="fc-note">💡 ${escapeHtml(card.note_th)}</div>` : ""}
+                    ${card.example_en ? `<div class="fc-example">"${highlightExample(card.example_en, card.text_en)}"</div>` : ""}
+                    ${card.example_th ? `<div class="fc-example-th">${escapeHtml(card.example_th)}</div>` : ""}
+                </div>
+            </div>
+        </div>
+        <div class="review-actions" id="review-actions" style="visibility:hidden;">
+            <button class="ra danger" data-grade="1">ลืม<small>${previewInterval(card, 1)}</small></button>
+            <button class="ra" data-grade="3">จำได้<small>${previewInterval(card, 3)}</small></button>
+            <button class="ra green" data-grade="5">ง่ายมาก<small>${previewInterval(card, 5)}</small></button>
+        </div>`;
+
+    document.getElementById("reveal-btn").onclick = () => reveal(mode, card);
+    document.querySelectorAll("[data-grade]").forEach(b => b.onclick = () => submitReview(parseInt(b.dataset.grade)));
+
+    if (mode === "ear") playAudio(card.text_en, voice);
+    prefetchNext();
+
+    if (mode === "speak" && SR_CLASS) {
+        document.getElementById("mic-btn").onclick = () => {
+            const status = document.getElementById("speak-status");
+            status.textContent = "🔴 กำลังฟัง...";
+            const rec = new SR_CLASS();
+            rec.lang = card.origin === "aussie" ? "en-AU" : card.origin === "irish" ? "en-IE" : card.origin === "scottish" || card.origin === "british" ? "en-GB" : "en-US";
+            rec.interimResults = false;
+            rec.maxAlternatives = 1;
+            rec.onresult = (e) => {
+                document.getElementById("speak-input").value = e.results[0][0].transcript;
+                status.textContent = "ได้ยินแล้ว — แก้ได้ถ้าไม่ตรง";
+            };
+            rec.onerror = () => { status.textContent = "ไม่ได้ยิน ลองพิมพ์แทนก็ได้"; };
+            rec.onend = () => { if (!status.textContent.includes("ได้ยินแล้ว")) status.textContent = ""; };
+            try { rec.start(); } catch (e) { status.textContent = "ไมค์ใช้ไม่ได้ ลองพิมพ์แทน"; }
+        };
+    }
+}
+
+function reveal(mode, card) {
+    if (mode === "speak") lastAttempt = (document.getElementById("speak-input") || {}).value || "";
+    else if (mode === "cloze") lastAttempt = (document.getElementById("cloze-input") || {}).value || "";
+
+    document.getElementById("flip-card").classList.add("flipped");
+    document.getElementById("review-actions").style.visibility = "visible";
+
+    const fb = document.getElementById("attempt-feedback");
+    if ((mode === "speak" || mode === "cloze") && lastAttempt.trim()) {
+        const target = mode === "cloze" ? (findTargetSpan(card.example_en, card.text_en) || card.text_en) : card.text_en;
+        const score = scoreAttempt(lastAttempt, target);
+        const face = score >= 80 ? "✅ ใกล้เคียงมาก!" : score >= 40 ? "🟡 ใกล้เคียงบางส่วน" : "🔻 ต่างจากคำตอบเยอะ";
+        fb.innerHTML = `<div style="font-size:12.5px; color:var(--ink-soft); margin-top:4px;">ที่ตอบมา: "${escapeHtml(lastAttempt)}" — ${face}</div>`;
+    } else {
+        fb.innerHTML = "";
+    }
+
+    if (mode !== "ear") playAudio(card.text_en, voiceFor(card, card.unit_id));
+}
+
+let submitting = false;
+async function submitReview(quality) {
+    if (submitting) return;
+    submitting = true;
+    document.querySelectorAll("[data-grade]").forEach(b => b.disabled = true);
+
+    const card = queue[idx];
+    try {
+        if (card.relearn) {
+            // รอบซ้อมในเซสชันเดียวกัน — ไม่ยิง API ซ้ำ (ตาราง SRS ถูกตั้งไปแล้วรอบแรก)
+        } else if (card.kind === "new") {
+            // คำใหม่จากเมนูวันนี้: เก็บเข้าโหลก่อน แล้วให้คะแนนครั้งแรกเลย
+            const res = await apiPost("/api/collect", { content_item_id: card.content_item_id });
+            card.card_id = res.card_id;
+            if (card.card_id) await apiPost(`/api/review/${card.card_id}`, { quality });
+        } else {
+            await apiPost(`/api/review/${card.card_id}`, { quality });
+        }
+    } catch (e) {}
+
+    if (!card.relearn) {
+        session.done += 1;
+        if (quality >= 3) session.correct += 1;
+    }
+    if (quality >= 3) sfx.correct(); else sfx.wrong();
+
+    // ลืม → วนกลับมาซ้อมท้ายเซสชันเดิม (ไม่ต้องรอพรุ่งนี้ค่อยเจอครั้งที่สอง)
+    if (quality === 1) {
+        queue.push({ ...card, kind: "review", relearn: true });
+    }
+
+    idx += 1;
+    submitting = false;
+    renderCard();
+    refreshPills();
+}
+
+async function finishSession() {
+    const el = document.getElementById("review-area");
+    if (session.done === 0) {
+        el.innerHTML = `
+            <div class="empty-state">
+                <div style="font-size:44px;">🎉</div>
+                <p style="font-size:17px; margin:10px 0 4px;">วันนี้ไม่มีอะไรค้างแล้ว</p>
+                <p style="font-size:13.5px;">ไปเก็บคำใหม่จากบทเรียน หรือเล่นเกมโซ่คำก็ได้</p>
+                <button class="gold" onclick="location.href='index.html'" style="margin-top:10px;">กลับหน้าหลัก</button>
+            </div>`;
+        return;
+    }
+
+    const acc = Math.round(session.correct / session.done * 100);
+    el.innerHTML = `<div class="card" style="text-align:center; padding:36px 20px;">
+        <div style="font-size:50px;">🏆</div>
+        <h2 style="margin:8px 0 4px;">จบรอบแล้ว เก่งมาก!</h2>
+        <p style="margin:4px 0;"><span class="num" style="font-size:26px;">${session.done}</span> ใบ · จำได้ <span class="num" style="font-size:26px; color:var(--green);">${acc}%</span></p>
+        <p id="stamp-line" style="font-size:13.5px; color:var(--ink-soft); min-height:20px;"></p>
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
+            <button class="secondary" onclick="location.href='index.html'">กลับหน้าหลัก</button>
+            <button class="gold" onclick="location.reload()">ต่ออีกรอบ</button>
+        </div>
+    </div>`;
+
+    sfx.fanfare();
+    confetti(40);
+
+    try {
+        let res = await apiPost("/api/earn", { stamp_source: "review_session" });
+        const stats = await refreshPills();
+        let lines = [];
+        if (res.stamp_awarded) lines.push("ได้แสตมป์ +1 📮");
+        if (stats && stats.reviewed_today >= stats.daily_goal) {
+            const g = await apiPost("/api/earn", { stamp_source: "daily_goal" });
+            if (g.stamp_awarded) { lines.push("ครบเป้าวันนี้! แสตมป์ +1 🎯"); res = g; }
+        }
+        document.getElementById("stamp-line").textContent = lines.join(" · ");
+        celebrateUnlocks(res.newly_unlocked);
+    } catch (e) {}
+}
+
+initChrome("review");
+safeLoad("review-area", async () => {
+    if (MIX) {
+        queue = await apiGet(`/api/today${LIMIT > 0 ? `?limit=${LIMIT}` : ""}`);
+    } else {
+        queue = await apiGet("/api/review/queue");
+        if (LIMIT > 0) queue = queue.slice(0, LIMIT);
+    }
+    idx = 0;
+    renderCard();
+});
+</script>
+</body>
+</html>

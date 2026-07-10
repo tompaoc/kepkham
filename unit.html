@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เก็บคำ — บทเรียน</title>
+<meta name="theme-color" content="#00A0DE">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="static/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+<main>
+    <div id="content"><div class="skeleton" style="height:100px;"></div><div class="skeleton" style="height:260px;"></div></div>
+</main>
+<script>window.KK_STATIC=true;</script>
+<script src="static/kk-local.js"></script>
+<script src="static/app.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const unitId = params.get("id");
+const ZONE_TH = { A2: "ด่านเริ่มต้น", B1: "ด่านกลางทาง", B2: "ด่านเก๋า" };
+let unitData = null;
+
+function tagFor(item) {
+    let out = "";
+    if (item.register) out += `<span class="tag tag-${item.register}">${item.register}</span>`;
+    if (item.origin && item.origin !== "universal") out += `<span class="tag tag-${item.origin}">${item.origin}</span>`;
+    return out;
+}
+
+function playBtn(item, extra) {
+    return `<button class="play-btn ${extra || ""}" data-say="${escapeHtml(item.text_en)}" data-voice="${voiceFor(item, unitId)}">${icon("play")}</button>`;
+}
+
+function renderVocabRow(item) {
+    return `
+        <div class="item-row">
+            ${playBtn(item)}
+            <div class="item-main">
+                <div class="item-en">${escapeHtml(item.text_en)} ${tagFor(item)}</div>
+                <div class="item-th">${escapeHtml(item.text_th || "")}</div>
+                ${item.note_th ? `<div class="item-note">💡 ${escapeHtml(item.note_th)}</div>` : ""}
+                ${item.example_en ? `<div class="item-example">"${escapeHtml(item.example_en)}"</div>` : ""}
+            </div>
+            <button class="secondary collect-btn ${item.collected ? "collected" : ""}"
+                    data-collect="${item.id}" ${item.collected ? "disabled" : ""}>
+                ${item.collected ? icon("check", "pill-ic") + " เก็บแล้ว" : icon("plus", "pill-ic") + " เก็บ"}
+            </button>
+        </div>`;
+}
+
+function renderSentenceRow(item) {
+    return `
+        <div class="item-row">
+            ${playBtn(item)}
+            <div class="item-main">
+                <div class="item-en" style="font-size:16px;">${escapeHtml(item.text_en)}</div>
+                <div class="item-th">${escapeHtml(item.text_th || "")}</div>
+                ${item.note_th ? `<div class="item-note">💡 ${escapeHtml(item.note_th)}</div>` : ""}
+            </div>
+            <button class="secondary collect-btn ${item.collected ? "collected" : ""}"
+                    data-collect="${item.id}" ${item.collected ? "disabled" : ""}>
+                ${item.collected ? icon("check", "pill-ic") + " เก็บแล้ว" : icon("plus", "pill-ic") + " เก็บ"}
+            </button>
+        </div>`;
+}
+
+function renderDialogueRow(item) {
+    const lines = (item.example_en || "").split("\n").filter(l => l.trim()).map(line => {
+        // แยก "Speaker: "..."" ออกมาให้ปุ่มเสียงพูดแค่คำพูด ไม่รวมชื่อคนพูด
+        const m = line.match(/^([^:]+):\s*"?(.*?)"?$/);
+        const speaker = m ? m[1] : "";
+        const spoken = (m ? m[2] : line).replace(/^"|"$/g, "");
+        return `<div style="display:flex; align-items:flex-start; gap:8px; margin:6px 0;">
+            ${playBtn({ text_en: spoken, origin: item.origin }, "")}
+            <span>${speaker ? `<b>${escapeHtml(speaker)}:</b> ` : ""}${escapeHtml(line.replace(/^[^:]+:\s*/, ""))}</span>
+        </div>`;
+    }).join("");
+    return `
+        <div class="card">
+            <div style="font-family:'Baloo 2'; font-weight:700; margin-bottom:8px;">🎭 ${escapeHtml(item.text_en)}</div>
+            <div style="font-size:14.5px;">${lines}</div>
+            ${item.note_th ? `<div class="item-note" style="margin-top:8px;">${escapeHtml(item.note_th)}</div>` : ""}
+        </div>`;
+}
+
+function renderTechniqueRow(item) {
+    return `
+        <div class="card" style="border-left:4px solid var(--bell-gold);">
+            <b>${escapeHtml(item.text_en)}</b>
+            <p style="margin:6px 0 0; font-size:14px;">${escapeHtml(item.note_th || "")}</p>
+        </div>`;
+}
+
+async function collectOne(btn, itemId) {
+    btn.disabled = true;
+    try {
+        await apiPost("/api/collect", { content_item_id: itemId });
+        btn.innerHTML = icon("check", "pill-ic") + " เก็บแล้ว";
+        btn.classList.add("collected");
+        sfx.correct();
+        refreshPills();
+    } catch (e) { btn.disabled = false; }
+}
+
+async function collectAll() {
+    const btn = document.getElementById("collect-all-btn");
+    btn.disabled = true;
+    const res = await apiPost(`/api/collect-unit/${unitId}`, {});
+    btn.innerHTML = `${icon("check", "pill-ic")} เก็บคำใหม่ ${res.added} คำแล้ว`;
+    document.querySelectorAll(".collect-btn").forEach(b => {
+        b.innerHTML = icon("check", "pill-ic") + " เก็บแล้ว"; b.classList.add("collected"); b.disabled = true;
+    });
+    sfx.bank();
+    refreshPills();
+}
+
+/* ===== เกมโซ่คำ v2 =====
+   - ด่านละ 10 ข้อ (จบใน ~3 นาที = เบรกงานพอดี) / ด่านยาว 20 เป็นตัวเลือก
+   - ~30% เป็นข้อ "ฟัง" (ไม่เห็นตัวหนังสือจนกว่าจะตอบ) — ฝึกหูตรงๆ
+   - ตอบผิด → คำนั้นเข้า SRS ทันที (คำที่ไม่รู้คือคำที่ต้องฝึกที่สุด) + หน้าเฉลยค้างจนกด
+   - กดแบงก์ → เก็บคำ + เหรียญเข้ากระเป๋าทันที (ไม่ต้องรอจบเกม — เลิกลงโทษคนพักกลางด่าน)
+*/
+const CHAIN_LADDER = [10, 20, 35, 50, 75, 100, 150, 200, 300, 500];
+let game = null;
+
+function buildQuestion(pool, item, earChance) {
+    const others = pool.filter(p => p.id !== item.id && p.text_th !== item.text_th);
+    const distractors = shuffle(others).slice(0, 3).map(p => p.text_th);
+    const choices = shuffle([item.text_th, ...distractors]);
+    return { item, choices, ear: Math.random() < earChance };
+}
+
+function startGame(size) {
+    const pool = window.__vocab;
+    const picked = shuffle(pool).slice(0, Math.min(size, pool.length));
+    game = {
+        queue: picked.map(it => buildQuestion(pool, it, 0.3)),
+        idx: 0, chain: 0, chainItems: [],
+        banked: 0, wrong: 0, maxChain: 0,
+        collectedIds: new Set(),
+    };
+    renderGame();
+    document.getElementById("chain-game-area").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function chainValue() {
+    return game.chain === 0 ? 0
+        : CHAIN_LADDER[Math.min(game.chain - 1, CHAIN_LADDER.length - 1)];
+}
+
+function chainLinksHtml() {
+    return `<div class="chain-links">${"🔗".repeat(game.chain).split("").map(l => `<span class="lnk">${l}</span>`).join("")}</div>`;
+}
+
+function renderGame() {
+    const el = document.getElementById("chain-game-area");
+    if (!game) return;
+    if (game.idx >= game.queue.length) { finishGame(); return; }
+
+    const q = game.queue[game.idx];
+    const voice = voiceFor(q.item, unitId);
+    const prompt = q.ear
+        ? `<div class="fc-ear-icon" style="font-size:44px; margin:6px 0;">${icon("speaker")}</div>
+           <div style="display:flex; gap:8px; justify-content:center; margin-bottom:4px;">
+               <button class="play-btn slow" data-say="${escapeHtml(q.item.text_en)}" data-voice="${voice}" data-rate="slow">🐢</button>
+               <button class="play-btn" data-say="${escapeHtml(q.item.text_en)}" data-voice="${voice}">${icon("play")}</button>
+           </div>
+           <p style="font-size:13px; color:var(--ink-soft); margin:4px 0 14px;">ฟังแล้วเลือกความหมาย</p>`
+        : `<p style="font-size:22px; font-family:'Baloo 2'; font-weight:700; margin:10px 0 4px;">${escapeHtml(q.item.text_en)}
+               <button class="play-btn" data-say="${escapeHtml(q.item.text_en)}" data-voice="${voice}" style="vertical-align:middle; width:32px; height:32px; min-height:32px; font-size:13px;">${icon("play")}</button>
+           </p>
+           <p style="font-size:13px; color:var(--ink-soft); margin:0 0 14px;">แปลว่าอะไร?</p>`;
+
+    el.innerHTML = `
+        <div class="card" style="text-align:center;" id="game-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12.5px; color:var(--ink-soft);">ข้อ ${game.idx + 1}/${game.queue.length}${q.ear ? " · โหมดฟัง" : ""}</span>
+                <span style="font-size:12.5px;">${icon("bank", "pill-ic")} เก็บแล้ว <b class="num">${game.banked}</b> 🥟</span>
+            </div>
+            ${chainLinksHtml()}
+            <div style="font-size:11.5px; color:var(--note-gold); margin-bottom:4px;">
+                ${game.chain > 0 ? `โซ่ ${game.chain} = ได้ ${chainValue()} 🥟 ถ้าเก็บตอนนี้` : "เริ่มโซ่ใหม่"}
+            </div>
+            ${prompt}
+            <div class="choice-grid" id="choice-grid">
+                ${q.choices.map((c, i) => `<button data-choice="${i}">${escapeHtml(c)}</button>`).join("")}
+            </div>
+            <div id="chain-actions" style="margin-top:12px;">
+                ${game.chain > 0 ? `<button class="gold" id="bank-btn">${icon("bank", "pill-ic")} เก็บ ${chainValue()} 🥟 หยุดเสี่ยง</button>` : ""}
+            </div>
+        </div>`;
+
+    document.querySelectorAll("[data-choice]").forEach(b =>
+        b.onclick = () => answer(parseInt(b.dataset.choice)));
+    const bankBtn = document.getElementById("bank-btn");
+    if (bankBtn) bankBtn.onclick = bank;
+
+    if (q.ear) playAudio(q.item.text_en, voice);
+    // อุ่นเสียงข้อถัดไปล่วงหน้า — TTS สร้างสดครั้งแรกช้า prefetch แล้วเด้งทันที
+    const nq = game.queue[game.idx + 1];
+    if (nq) fetch(`/api/tts?text=${encodeURIComponent(nq.item.text_en)}&voice=${voiceFor(nq.item, unitId)}&rate=normal`).catch(() => {});
+}
+
+async function answer(choiceIdx) {
+    const q = game.queue[game.idx];
+    const chosenText = q.choices[choiceIdx];
+    const correct = chosenText === q.item.text_th;
+    const grid = document.getElementById("choice-grid");
+    grid.querySelectorAll("button").forEach(b => b.disabled = true);
+    document.getElementById("chain-actions").innerHTML = "";
+
+    if (correct) {
+        grid.children[choiceIdx].classList.add("hit");
+        sfx.correct();
+        game.chain += 1;
+        game.maxChain = Math.max(game.maxChain, game.chain);
+        game.chainItems.push(q.item.id);
+        setTimeout(() => { game.idx += 1; renderGame(); }, 650);
+    } else {
+        grid.children[choiceIdx].classList.add("miss");
+        const rightIdx = q.choices.indexOf(q.item.text_th);
+        if (rightIdx >= 0) grid.children[rightIdx].classList.add("hit");
+        sfx.wrong();
+        document.getElementById("game-card").classList.add("shake");
+        game.wrong += 1;
+        game.chain = 0;
+        game.chainItems = [];
+        // คำที่ตอบผิด = คำที่ต้องฝึกที่สุด → เข้าโหล/SRS ทันที
+        if (!game.collectedIds.has(q.item.id)) {
+            game.collectedIds.add(q.item.id);
+            apiPost("/api/collect", { content_item_id: q.item.id }).catch(() => {});
+        }
+        setTimeout(showDwell, 900);
+    }
+}
+
+/* หน้าเฉลยตอนผิด — ค้างจนกด (1.4 วิแบบเดิมอ่านไม่ทัน = ไม่ได้เรียนรู้อะไร) */
+function showDwell() {
+    const q = game.queue[game.idx];
+    const voice = voiceFor(q.item, unitId);
+    const el = document.getElementById("chain-game-area");
+    el.innerHTML = `
+        <div class="card dwell-card">
+            <div class="d-head">💥 โซ่ขาด! คำนี้เข้าถังฝึกแล้ว 📥</div>
+            <div class="d-answer">${escapeHtml(q.item.text_en)}
+                <button class="play-btn" data-say="${escapeHtml(q.item.text_en)}" data-voice="${voice}" style="vertical-align:middle; width:32px; height:32px; min-height:32px; font-size:13px;">${icon("play")}</button>
+            </div>
+            <div class="item-th" style="font-size:16px;">${escapeHtml(q.item.text_th || "")}</div>
+            ${q.item.note_th ? `<div class="item-note">💡 ${escapeHtml(q.item.note_th)}</div>` : ""}
+            ${q.item.example_en ? `<div class="item-example">"${escapeHtml(q.item.example_en)}"</div>` : ""}
+            <p style="font-size:12px; color:var(--ink-soft); margin:10px 0 0;">คำนี้จะวนกลับมาในทบทวนพรุ่งนี้ — ครั้งหน้าเอาให้ได้!</p>
+            <button class="big" style="margin-top:12px;" id="dwell-next">แตะเพื่อไปต่อ</button>
+        </div>`;
+    playAudio(q.item.text_en, voice);
+    document.getElementById("dwell-next").onclick = () => { game.idx += 1; renderGame(); };
+}
+
+/* แบงก์ = เก็บคำ + เหรียญ ทันที (ไม่รอจบเกม) */
+async function bank() {
+    const btn = document.getElementById("bank-btn");
+    if (btn) btn.disabled = true;
+    const pts = chainValue();
+    const items = game.chainItems.slice();
+    game.banked += pts;
+    game.chain = 0;
+    game.chainItems = [];
+
+    sfx.bank();
+    coinFly(btn || document.getElementById("game-card"));
+
+    for (const id of items) {
+        if (!game.collectedIds.has(id)) {
+            game.collectedIds.add(id);
+            apiPost("/api/collect", { content_item_id: id }).catch(() => {});
+        }
+    }
+    try {
+        const res = await apiPost("/api/earn", { coins: pts, chain: game.maxChain });
+        refreshPills();
+        celebrateUnlocks(res.newly_unlocked);
+    } catch (e) {}
+    renderGame();
+}
+
+async function finishGame() {
+    // จบด่าน = โซ่ที่เหลือแบงก์ให้อัตโนมัติ
+    const leftoverPts = chainValue();
+    const leftover = game.chainItems.slice();
+    game.banked += leftoverPts;
+    for (const id of leftover) {
+        if (!game.collectedIds.has(id)) {
+            game.collectedIds.add(id);
+            apiPost("/api/collect", { content_item_id: id }).catch(() => {});
+        }
+    }
+
+    const total = game.queue.length;
+    const right = total - game.wrong;
+    const acc = right / total;
+    const stars = acc >= 1 ? 3 : acc >= 0.8 ? 2 : acc >= 0.6 ? 1 : 0;
+    const starHtml = [1, 2, 3].map(i => `<span class="${i <= stars ? "" : "dim"}">⭐</span>`).join("");
+
+    const el = document.getElementById("chain-game-area");
+    el.innerHTML = `
+        <div class="card" style="text-align:center; padding:30px 18px;">
+            <div style="font-size:46px;">🏆</div>
+            <h2 style="margin:6px 0 2px;">จบด่าน!</h2>
+            <div class="stars">${starHtml}</div>
+            <p style="margin:2px 0;">ตอบถูก <b class="num">${right}/${total}</b> · ได้ <b class="num">${game.banked}</b> 🥟</p>
+            <p id="game-stamp-line" style="font-size:13px; color:var(--ink-soft); min-height:18px;"></p>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:12px;">
+                <button class="secondary" onclick="location.href='index.html'">กลับหน้าหลัก</button>
+                <button class="gold" id="play-again">เล่นอีกด่าน</button>
+            </div>
+        </div>`;
+    document.getElementById("play-again").onclick = () => startGame(10);
+
+    if (stars === 3) { sfx.fanfare(); confetti(44); }
+    else if (stars > 0) { sfx.bank(); confetti(20); }
+
+    try {
+        const res = await apiPost("/api/earn", {
+            coins: leftoverPts, chain: game.maxChain,
+            perfect: game.wrong === 0 && total >= 10,
+            stamp_source: "game_round",
+        });
+        const lines = [];
+        if (res.stamp_awarded) lines.push("แสตมป์ +1 📮");
+        if (game.wrong === 0 && total >= 10) lines.push("ด่านไร้ที่ติ! 🎩");
+        document.getElementById("game-stamp-line").textContent = lines.join(" · ");
+        refreshPills();
+        celebrateUnlocks(res.newly_unlocked);
+    } catch (e) {}
+    game = null;
+}
+
+function toggleVocabList() {
+    const el = document.getElementById("vocab-list-area");
+    el.style.display = el.style.display === "none" ? "block" : "none";
+}
+
+async function main() {
+    const unit = await apiGet(`/api/units/${unitId}`);
+    unitData = unit;
+    const el = document.getElementById("content");
+
+    const techniques = unit.items.filter(i => i.item_type === "technique");
+    // กันเหนียว: ตัดรายการแพทเทิร์นเติมคำ (มี [placeholder] หรือ "...") ออกจาก quiz เสมอ
+    const isFillInPattern = (t) => /\[[^\]]+\]/.test(t) || /\.\.\.\s*$/.test(t);
+    const vocab = unit.items.filter(i =>
+        ["word", "chunk", "slang"].includes(i.item_type) && !isFillInPattern(i.text_en) && i.text_th
+    );
+    const sentences = unit.items.filter(i => i.item_type === "sentence");
+    const dialogues = unit.items.filter(i => i.item_type === "dialogue");
+    window.__vocab = vocab;
+
+    let html = `
+        <h2 style="margin:2px 0 2px;">${escapeHtml(unit.name_th)}</h2>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin:0 0 14px;">${unit.items.length} คำ${unit.cefr ? ` · ${ZONE_TH[unit.cefr] || ""} (${unit.cefr})` : ""}</p>
+    `;
+
+    if (techniques.length) {
+        html += `<div class="section-label">🎯 ทริค/วิธีที่สอน</div>`;
+        html += techniques.map(renderTechniqueRow).join("");
+    }
+
+    if (vocab.length >= 4) {
+        html += `<div class="section-label">🔗 เกมโซ่คำ</div>`;
+        html += `<div id="chain-game-area"></div>`;
+        html += `<div style="display:flex; gap:8px; justify-content:center; margin:12px 0; flex-wrap:wrap;">
+            <button class="secondary" id="btn-r10">🔗 ด่านสั้น 10 ข้อ</button>
+            <button class="secondary" id="btn-r20">⛓️ ด่านยาว 20 ข้อ</button>
+            <button class="secondary" id="btn-list">📋 ดูทั้งหมดเป็นลิสต์</button>
+        </div>`;
+        html += `<div id="vocab-list-area" style="display:none;">
+            <button id="collect-all-btn" class="gold" style="margin-bottom:10px;">+ เก็บทั้งหมดเข้าโหล</button>
+            <div class="card">${vocab.map(renderVocabRow).join("")}</div>
+        </div>`;
+    } else if (vocab.length) {
+        html += `<div class="section-label">📚 คำ/ก้อนคำ (${vocab.length})</div>`;
+        html += `<button id="collect-all-btn" class="gold" style="margin-bottom:10px;">+ เก็บทั้งหมดเข้าโหล</button>`;
+        html += `<div class="card">${vocab.map(renderVocabRow).join("")}</div>`;
+    }
+
+    if (sentences.length) {
+        html += `<div class="section-label">💬 ประโยคใช้จริง (เก็บเข้าโหลได้)</div>`;
+        html += `<div class="card">${sentences.map(renderSentenceRow).join("")}</div>`;
+    }
+
+    if (dialogues.length) {
+        html += `<div class="section-label">🎭 บทสนทนาตัวอย่าง</div>`;
+        html += dialogues.map(renderDialogueRow).join("");
+    }
+
+    el.innerHTML = html;
+
+    const r10 = document.getElementById("btn-r10");
+    if (r10) {
+        r10.onclick = () => startGame(10);
+        document.getElementById("btn-r20").onclick = () => startGame(20);
+        document.getElementById("btn-list").onclick = toggleVocabList;
+        startGame(10);
+    }
+    const ca = document.getElementById("collect-all-btn");
+    if (ca) ca.onclick = collectAll;
+}
+
+document.addEventListener("click", (ev) => {
+    const c = ev.target.closest("[data-collect]");
+    if (c) collectOne(c, parseInt(c.dataset.collect));
+});
+
+initChrome("home");
+safeLoad("content", main);
+</script>
+</body>
+</html>

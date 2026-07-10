@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เก็บคำ</title>
+<meta name="theme-color" content="#00A0DE">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="static/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+<main>
+    <div id="hero-area"><div class="skeleton" style="height:170px;"></div></div>
+    <div class="search-wrap">
+        <span class="s-ico" id="search-ico"></span>
+        <input type="text" class="search-box" id="search-box"
+               placeholder="ค้นหาคำ... เช่น schooner หรือ เก็บแก้ว">
+    </div>
+    <div class="search-results" id="search-results"></div>
+    <div id="path-area"></div>
+    <div id="list"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+</main>
+<script>window.KK_STATIC=true;</script>
+<script src="static/kk-local.js"></script>
+<script src="static/app.js"></script>
+<script>
+const ICONS = {
+    bar_hospitality: "🍻", knd_essence: "🎓",
+    self_family: "👪", food_ordering: "🍜", travel_directions: "🧭",
+    shopping: "🛍️", work_meetings: "💼", small_talk: "💬",
+    phone_online: "📱", health_doctor: "🩺", emotions: "💛",
+    home_routines: "🏠", entertainment_social: "🎮", money_banking: "💰",
+    default: "📘"
+};
+const ZONE_TH = { A2: "ด่านเริ่มต้น", B1: "ด่านกลางทาง", B2: "ด่านเก๋า" };
+const GOAL_RING_C = 2 * Math.PI * 27;
+
+function greeting() {
+    const h = new Date().getHours();
+    if (h < 5)  return "ดึกแล้วนะ แวะมาเก็บคำก่อนนอน 🌙";
+    if (h < 11) return "สวัสดีตอนเช้า ทอม ☀️";
+    if (h < 17) return "สวัสดีตอนบ่าย ทอม 🌤️";
+    if (h < 21) return "เย็นนี้ลุยกันหน่อย ทอม 🌆";
+    return "เลิกกะแล้วใช่มั้ย เก็บคำสักหน่อย 🍺";
+}
+
+function renderHero(stats) {
+    const done = Math.min(stats.reviewed_today, stats.daily_goal);
+    const offset = GOAL_RING_C * (1 - done / stats.daily_goal);
+    const flameCls = !stats.active_today ? "flame-off" : (done >= stats.daily_goal ? "flame-goal" : "");
+    const menuSize = Math.min(20, Math.max(8, stats.due_today + 10));
+    const mins = Math.max(3, Math.round(menuSize * 0.35));
+
+    document.getElementById("hero-area").innerHTML = `
+        <div class="hero">
+            <p class="greet">${greeting()}</p>
+            <div class="hero-row">
+                <div class="hero-streak">
+                    <div class="num"><span class="hero-flame ${flameCls}">${icon("fire")}</span> ${stats.streak_days} วันติด</div>
+                    <div class="lbl">${stats.active_today ? "วันนี้เรียนแล้ว เยี่ยม!" : "วันนี้ยังว่างอยู่ — เริ่มกันเลยมั้ย"}</div>
+                </div>
+                <svg width="64" height="64" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="7"/>
+                    <circle cx="32" cy="32" r="27" fill="none" stroke="#F3B93F" stroke-width="7"
+                        stroke-linecap="round" stroke-dasharray="${GOAL_RING_C.toFixed(1)}"
+                        stroke-dashoffset="${offset.toFixed(1)}"
+                        transform="rotate(-90 32 32)" style="transition:stroke-dashoffset .6s ease"/>
+                    <text x="32" y="37" text-anchor="middle" fill="#fff"
+                        font-family="Baloo 2" font-weight="700" font-size="14">${done}/${stats.daily_goal}</text>
+                </svg>
+            </div>
+            <button class="gold big btn-cta" onclick="location.href='review.html?mix=1'">
+                ${icon("play", "pill-ic")} เริ่มเมนูวันนี้${stats.due_today > 0 ? ` — มี ${stats.due_today} คำรอทบทวน` : ""} (~${mins} นาที)
+            </button>
+            <button class="sub-cta" onclick="location.href='review.html?mix=1&limit=10'">☕ โหมดพัก 10 นาที (10 ใบพอ)</button>
+            ${stats.repair_offer ? `
+                <button class="repair-btn" id="repair-btn">
+                    ${icon("fire", "pill-ic")} ไฟดับไปเมื่อวาน — ซ่อมด้วย ${stats.repair_cost} 🥟 ให้ต่อติดเหมือนเดิม
+                </button>` : ""}
+        </div>`;
+
+    const rb = document.getElementById("repair-btn");
+    if (rb) rb.onclick = async () => {
+        rb.disabled = true;
+        try {
+            const res = await apiPost("/api/streak/repair", {});
+            sfx.bell();
+            confetti(20);
+            await refreshPills();
+            main();
+        } catch (e) { rb.textContent = "ซ่อมไม่สำเร็จ ลองใหม่อีกที"; rb.disabled = false; }
+    };
+}
+
+function renderPath(units) {
+    const levels = ["A2", "B1", "B2"];
+    const chips = levels.map(lv => {
+        const us = units.filter(u => u.pack_type === "core" && u.cefr === lv);
+        const total = us.reduce((s, u) => s + u.item_count, 0);
+        const got = us.reduce((s, u) => s + u.collected_count, 0);
+        return { lv, pct: total ? Math.round(got / total * 100) : 0, got, total };
+    });
+    const currentIdx = chips.findIndex(c => c.pct < 100);
+    document.getElementById("path-area").innerHTML = `
+        <div class="zone-path" id="path">
+            ${chips.map((c, i) => `
+                <div class="zone-chip ${i === currentIdx ? "current" : ""} ${c.pct >= 100 ? "done" : ""}">
+                    <div class="z-name">${c.pct >= 100 ? "✓ " : ""}${ZONE_TH[c.lv]}</div>
+                    <div class="z-pct">${c.pct}% · ${c.got}/${c.total} คำ</div>
+                    <div class="z-bar"><div style="width:${c.pct}%"></div></div>
+                </div>`).join("")}
+        </div>`;
+}
+
+function miniRing(u) {
+    const pct = u.item_count ? u.collected_count / u.item_count : 0;
+    if (pct >= 1) return `<span class="done-ic" title="ครบแล้ว">${icon("check")}</span>`;
+    if (pct === 0) return "";
+    const C = 2 * Math.PI * 12;
+    return `
+        <svg class="mini-ring" viewBox="0 0 30 30" title="${u.collected_count}/${u.item_count}">
+            <circle class="bg" cx="15" cy="15" r="12" fill="none" stroke-width="3.5"/>
+            <circle class="fg" cx="15" cy="15" r="12" fill="none" stroke-width="3.5"
+                stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}"
+                stroke-dashoffset="${(C * (1 - pct)).toFixed(1)}" transform="rotate(-90 15 15)"/>
+        </svg>`;
+}
+
+function renderUnitCard(u) {
+    const iconCh = ICONS[u.theme] || ICONS.default;
+    const zoneBadge = u.cefr ? `<span class="zone-badge zone-${u.cefr}">${u.cefr}</span>` : "";
+    const complete = u.item_count > 0 && u.collected_count >= u.item_count;
+    return `
+        <div class="card unit-card ${u.pinned ? "pinned" : ""} ${complete ? "complete" : ""}" data-goto="${encodeURIComponent(u.id)}">
+            <div class="unit-icon">${iconCh}</div>
+            <div class="unit-title">
+                <span class="name">${escapeHtml(u.name_th)}</span>
+                <span class="meta">${u.collected_count > 0 ? `เก็บแล้ว ${u.collected_count}/` : ""}${u.item_count} คำ${u.pinned ? " · เนื้อหาชีวิตจริงของนาย" : ""}</span>
+            </div>
+            <div class="unit-right">${miniRing(u)}${zoneBadge}</div>
+        </div>`;
+}
+
+/* เรียง continue-first: ค้างกลางทาง > ยังไม่เริ่ม > ครบแล้ว */
+function continueFirst(us) {
+    const state = u => (u.collected_count > 0 && u.collected_count < u.item_count) ? 0
+        : (u.collected_count === 0 ? 1 : 2);
+    return us.slice().sort((a, b) => state(a) - state(b));
+}
+
+function foldSection(labelHtml, bodyHtml, open) {
+    return `
+        <details class="zone-fold" ${open ? "open" : ""}>
+            <summary><div class="section-label"><span class="fold-arrow">▶</span> ${labelHtml}</div></summary>
+            ${bodyHtml}
+        </details>`;
+}
+
+async function main() {
+    const [stats, units] = await Promise.all([apiGet("/api/stats"), apiGet("/api/units")]);
+
+    renderHero(stats);
+    renderPath(units);
+
+    const pinned = units.filter(u => u.pinned);
+    const core = units.filter(u => !u.pinned && u.pack_type === "core");
+    const knd = units.filter(u => !u.pinned && u.pack_type === "knd");
+    const trend = units.filter(u => !u.pinned && u.pack_type === "trend");
+
+    let html = "";
+    if (pinned.length) {
+        html += `<div class="section-label">📌 ปักหมุด — ใช้ได้ทุกวัน</div>`;
+        html += pinned.map(renderUnitCard).join("");
+    }
+    if (core.length) {
+        const byLevel = {};
+        core.forEach(u => { (byLevel[u.cefr] = byLevel[u.cefr] || []).push(u); });
+        const levels = Object.keys(byLevel).sort();
+        // ด่านปัจจุบัน = ด่านแรกที่ยังเก็บไม่ครบ → เปิดไว้ ที่เหลือพับ
+        const currentLevel = levels.find(lv => {
+            const us = byLevel[lv];
+            return us.reduce((s, u) => s + u.collected_count, 0) <
+                   us.reduce((s, u) => s + u.item_count, 0);
+        }) || levels[0];
+        for (const level of levels) {
+            html += foldSection(
+                `🗺️ เส้นทางของเรา — ${ZONE_TH[level] || level} (${level}) · ${byLevel[level].length} บท`,
+                continueFirst(byLevel[level]).map(renderUnitCard).join(""),
+                level === currentLevel,
+            );
+        }
+    }
+    if (trend.length) {
+        html += `<div class="section-label">🔥 ของสดประจำสัปดาห์</div>`;
+        html += trend.map(renderUnitCard).join("");
+    }
+    if (knd.length) {
+        html += foldSection(
+            `🎓 ของเด็ดจากพี่ๆ คำนี้ดี · ${knd.length} บท`,
+            continueFirst(knd).map(renderUnitCard).join(""),
+            false,
+        );
+    }
+    if (!html) html = `<div class="empty-state">ยังไม่มีบทเรียน</div>`;
+
+    document.getElementById("list").innerHTML = html;
+}
+
+/* ---------- ค้นหาคำทั้งโหล ---------- */
+let _searchTimer = null;
+document.getElementById("search-ico").innerHTML = icon("search");
+document.getElementById("search-box").addEventListener("input", (e) => {
+    clearTimeout(_searchTimer);
+    const q = e.target.value.trim();
+    const box = document.getElementById("search-results");
+    if (!q) { box.innerHTML = ""; return; }
+    _searchTimer = setTimeout(async () => {
+        try {
+            const hits = await apiGet(`/api/search?q=${encodeURIComponent(q)}`);
+            box.innerHTML = hits.length ? hits.map(h => `
+                <div class="search-hit" data-goto="${encodeURIComponent(h.unit_id)}">
+                    ${h.collected ? `<span class="sh-got">${icon("check")}</span>` : ""}
+                    <div>
+                        <div class="sh-en">${escapeHtml(h.text_en)}</div>
+                        <div class="sh-th">${escapeHtml(h.text_th || "")}</div>
+                    </div>
+                    <span class="sh-unit">${escapeHtml(h.unit_name)}</span>
+                </div>`).join("")
+                : `<div class="search-hit" style="cursor:default;"><div class="sh-th">ยังไม่มีคำนี้ในโหล — จดไว้ที่ <a href="inbox.html">จดไว้</a> เดี๋ยวหาคำตอบให้</div></div>`;
+        } catch (err) { box.innerHTML = ""; }
+    }, 300);
+});
+
+document.addEventListener("click", (ev) => {
+    const card = ev.target.closest("[data-goto]");
+    if (card) location.href = `/unit.html?id=${card.dataset.goto}`;
+});
+
+initChrome("home");
+safeLoad("list", main);
+</script>
+</body>
+</html>
