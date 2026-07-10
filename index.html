@@ -238,7 +238,7 @@ document.getElementById("search-box").addEventListener("input", (e) => {
 
 document.addEventListener("click", (ev) => {
     const card = ev.target.closest("[data-goto]");
-    if (card) location.href = `/unit.html?id=${card.dataset.goto}`;
+    if (card) location.href = `unit.html?id=${card.dataset.goto}`;
 });
 
 initChrome("home");
