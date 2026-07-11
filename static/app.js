@@ -84,25 +84,28 @@ function icon(name, cls) {
 }
 
 /* ---------- Chrome: header + tab bar (ฉีดทุกหน้า — จุดเดียว เลิก copy-paste) ---------- */
+/* path ทั้งหมดเป็น relative (ไม่มี / นำหน้า) — ต้องทำงานได้ทั้งบน uvicorn ที่ราก /
+   และบน GitHub Pages ที่แอปอยู่ใต้ /kepkham/ ถ้าใส่ / นำหน้าเมื่อไหร่ กดบน Pages
+   จะเด้งออกนอกแอปแล้ว 404 (ทุกหน้าอยู่โฟลเดอร์เดียวกัน relative จึงถูกเสมอ) */
 const TABS = [
-    { id: "home",   href: "/",            iconName: "house",    label: "วันนี้" },
-    { id: "path",   href: "/#path",       iconName: "map",      label: "เส้นทาง" },
-    { id: "review", href: "/review.html", iconName: "repeat",   label: "ทบทวน" },
-    { id: "board",  href: "/board.html",  iconName: "backpack", label: "กระเป๋า" },
-    { id: "inbox",  href: "/inbox.html",  iconName: "notepencil", label: "จดไว้" },
+    { id: "home",   href: "index.html",       iconName: "house",    label: "วันนี้" },
+    { id: "path",   href: "index.html#path",  iconName: "map",      label: "เส้นทาง" },
+    { id: "review", href: "review.html",      iconName: "repeat",   label: "ทบทวน" },
+    { id: "board",  href: "board.html",       iconName: "backpack", label: "กระเป๋า" },
+    { id: "inbox",  href: "inbox.html",       iconName: "notepencil", label: "จดไว้" },
 ];
 
 function initChrome(active) {
     const header = `
         <header class="kk-header">
-            <h1><a href="/">🫙 เก็บคำ</a></h1>
+            <h1><a href="index.html">🫙 เก็บคำ</a></h1>
             <nav class="top-nav">
                 ${TABS.filter(t => t.id !== "path").map(t => `
                     <a href="${t.href}" class="${t.id === active ? "active" : ""}">${t.label}</a>`).join("")}
             </nav>
             <div class="kk-pills">
-                <button class="kk-pill" id="pill-coins" onclick="location.href='/board.html'">${icon("coin", "pill-ic")} <span class="num" id="coin-num">–</span></button>
-                <button class="kk-pill" id="pill-streak" onclick="location.href='/'"><span id="streak-flame">${icon("fire", "pill-ic")}</span> <span class="num" id="streak-num">–</span></button>
+                <button class="kk-pill" id="pill-coins" onclick="location.href='board.html'">${icon("coin", "pill-ic")} <span class="num" id="coin-num">–</span></button>
+                <button class="kk-pill" id="pill-streak" onclick="location.href='index.html'"><span id="streak-flame">${icon("fire", "pill-ic")}</span> <span class="num" id="streak-num">–</span></button>
                 <button class="kk-pill" id="pill-mute" title="เปิด/ปิดเสียง"></button>
             </div>
         </header>`;
