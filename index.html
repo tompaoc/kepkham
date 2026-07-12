@@ -59,20 +59,21 @@ function renderHero(stats) {
 
     document.getElementById("hero-area").innerHTML = `
         <div class="hero">
-          <div class="hero-content">
+          <img class="hero-remi" src="static/remi-idle.png" alt="Remi">
+          <div class="hero-panel">
             <p class="greet">${greeting()}</p>
             <div class="hero-row">
                 <div class="hero-streak">
                     <div class="num"><span class="hero-flame ${flameCls}">${icon("fire")}</span> ${stats.streak_days} วันติด</div>
                     <div class="lbl">${stats.active_today ? "วันนี้เรียนแล้ว เยี่ยม!" : "วันนี้ยังว่างอยู่ — เริ่มกันเลยมั้ย"}</div>
                 </div>
-                <svg width="64" height="64" viewBox="0 0 64 64">
-                    <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="7"/>
-                    <circle cx="32" cy="32" r="27" fill="none" stroke="#F3B93F" stroke-width="7"
+                <svg width="60" height="60" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(74,54,38,.16)" stroke-width="7"/>
+                    <circle cx="32" cy="32" r="27" fill="none" stroke="#E08A1E" stroke-width="7"
                         stroke-linecap="round" stroke-dasharray="${GOAL_RING_C.toFixed(1)}"
                         stroke-dashoffset="${offset.toFixed(1)}"
                         transform="rotate(-90 32 32)" style="transition:stroke-dashoffset .6s ease"/>
-                    <text x="32" y="37" text-anchor="middle" fill="#fff"
+                    <text x="32" y="37" text-anchor="middle" fill="#5A3E1B"
                         font-family="Baloo 2" font-weight="700" font-size="14">${done}/${stats.daily_goal}</text>
                 </svg>
             </div>
@@ -85,7 +86,6 @@ function renderHero(stats) {
                     ${icon("fire", "pill-ic")} ไฟดับไปเมื่อวาน — ซ่อมด้วย ${stats.repair_cost} 🥟 ให้ต่อติดเหมือนเดิม
                 </button>` : ""}
           </div>
-          <img class="hero-remi" src="static/remi-idle.png" alt="Remi">
         </div>`;
 
     const rb = document.getElementById("repair-btn");
