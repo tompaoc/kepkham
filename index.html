@@ -59,6 +59,7 @@ function renderHero(stats) {
 
     document.getElementById("hero-area").innerHTML = `
         <div class="hero">
+          <div class="hero-content">
             <p class="greet">${greeting()}</p>
             <div class="hero-row">
                 <div class="hero-streak">
@@ -83,6 +84,8 @@ function renderHero(stats) {
                 <button class="repair-btn" id="repair-btn">
                     ${icon("fire", "pill-ic")} ไฟดับไปเมื่อวาน — ซ่อมด้วย ${stats.repair_cost} 🥟 ให้ต่อติดเหมือนเดิม
                 </button>` : ""}
+          </div>
+          <img class="hero-remi" src="static/remi-idle.png" alt="Remi">
         </div>`;
 
     const rb = document.getElementById("repair-btn");

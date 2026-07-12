@@ -204,13 +204,26 @@ button.big { font-size: 17px; padding: 15px 24px; width: 100%; min-height: 54px;
     box-shadow: 0 4px 16px rgba(0,119,182,.28);
     margin-bottom: 18px;
     position: relative; overflow: hidden;
+    display: flex; align-items: stretch; gap: 8px;   /* 2 คอลัมน์: เนื้อหา | Remi */
 }
-.hero::after {  /* วงกลมตกแต่งจางๆ มุมขวา — กลิ่นกระดิ่งโดเรมอน */
-    content: ""; position: absolute; right: -36px; top: -36px;
-    width: 130px; height: 130px; border-radius: 50%;
-    background: rgba(255,255,255,.09);
+.hero-content { flex: 1; min-width: 0; }
+.hero::after {  /* วงแสงจางๆ หลัง Remi ให้เด่นขึ้น */
+    content: ""; position: absolute; right: 6px; bottom: -34px;
+    width: 140px; height: 140px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.16), transparent 70%);
 }
+/* Remi ยืนเต็มตัวในคอลัมน์ขวาของการ์ด ทักทายพ่อ — pixel คมด้วย image-rendering */
+.hero-remi {
+    align-self: flex-end; flex-shrink: 0; position: relative; z-index: 1;
+    height: 130px; width: auto; margin-bottom: -20px;   /* เท้าจรดขอบล่างการ์ด */
+    image-rendering: pixelated;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,.25));
+    pointer-events: none;
+    animation: remiBob 3s ease-in-out infinite;
+}
+@keyframes remiBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 .hero .greet { font-size: 15px; opacity: .92; margin: 0 0 10px; }
+@media (max-width: 400px) { .hero-remi { height: 104px; } }
 .hero-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
 .hero-streak { flex: 1; }
 .hero-streak .num { font-size: 36px; line-height: 1.05; }
