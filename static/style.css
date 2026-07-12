@@ -31,36 +31,37 @@
     --shadow-pop:  0 8px 24px rgba(59,47,47,.16);
 }
 
-/* ---------- Dark mode (ตาม OS — ทอมเลิกกะดึก มือถือมักเข้าโหมดมืดเองอยู่แล้ว) ---------- */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --cream:      #211a11;
-        --card:       #322818;
-        --ink:        #F2E7D4;
-        --ink-soft:   #C9B08E;
-        --line:       #4A3B26;
-        --board-frame:#2c2416;
-        --board-border:#4A3B26;
-        --slot-bg:    #3a2f1d;
-        --slot-border:#4A3B26;
-        --example-green:#A4C68D;
-        --note-gold:  #DBAA52;
-        --shadow-card: 0 2px 10px rgba(0,0,0,.45);
-        --shadow-pop:  0 8px 24px rgba(0,0,0,.6);
-    }
-    .unit-icon { background: #1c3d4d; }
-    .unit-card.pinned { background: linear-gradient(135deg, #3b2f14 0%, #46370f 100%); }
-    .tag-slang { background: #46212e; color: #F4C0D1; }
-    .tag-casual { background: #42310e; color: #FAC775; }
-    .tag-neutral { background: #14314a; color: #B5D4F4; }
-    .tag-formal { background: #253a15; color: #C0DD97; }
-    .tag-aussie { background: #0e3a2e; color: #9FE1CB; }
-    .tag-irish { background: #262254; color: #CECBF6; }
-    .tag-scottish { background: #45210f; color: #F5C4B3; }
-    .tag-british { background: #35342c; color: #D3D1C7; }
-    .skeleton { background: linear-gradient(90deg, #2e2515 25%, #3a2f1d 50%, #2e2515 75%); background-size: 200% 100%; }
-    .choice-grid button.hit { color: #fff; }
+/* ---------- Dark mode ----------
+   app.js resolve "auto" (ตาม OS) เป็น light/dark แล้ว set data-theme บน <html> เสมอ
+   CSS จึงมี dark block เดียว (ไม่ต้องเขียน token ซ้ำใน @media) — ปุ่มสลับก็แค่
+   เปลี่ยน data-theme เอาชนะ OS ได้ทั้งสองทาง (ทอมเลิกกะดึก อยากมืดแม้มือถือตั้ง light) */
+:root[data-theme="dark"] {
+    --cream:      #211a11;
+    --card:       #322818;
+    --ink:        #F2E7D4;
+    --ink-soft:   #C9B08E;
+    --line:       #4A3B26;
+    --board-frame:#2c2416;
+    --board-border:#4A3B26;
+    --slot-bg:    #3a2f1d;
+    --slot-border:#4A3B26;
+    --example-green:#A4C68D;
+    --note-gold:  #DBAA52;
+    --shadow-card: 0 2px 10px rgba(0,0,0,.45);
+    --shadow-pop:  0 8px 24px rgba(0,0,0,.6);
 }
+:root[data-theme="dark"] .unit-icon { background: #1c3d4d; }
+:root[data-theme="dark"] .unit-card.pinned { background: linear-gradient(135deg, #3b2f14 0%, #46370f 100%); }
+:root[data-theme="dark"] .tag-slang { background: #46212e; color: #F4C0D1; }
+:root[data-theme="dark"] .tag-casual { background: #42310e; color: #FAC775; }
+:root[data-theme="dark"] .tag-neutral { background: #14314a; color: #B5D4F4; }
+:root[data-theme="dark"] .tag-formal { background: #253a15; color: #C0DD97; }
+:root[data-theme="dark"] .tag-aussie { background: #0e3a2e; color: #9FE1CB; }
+:root[data-theme="dark"] .tag-irish { background: #262254; color: #CECBF6; }
+:root[data-theme="dark"] .tag-scottish { background: #45210f; color: #F5C4B3; }
+:root[data-theme="dark"] .tag-british { background: #35342c; color: #D3D1C7; }
+:root[data-theme="dark"] .skeleton { background: linear-gradient(90deg, #2e2515 25%, #3a2f1d 50%, #2e2515 75%); background-size: 200% 100%; }
+:root[data-theme="dark"] .choice-grid button.hit { color: #fff; }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 

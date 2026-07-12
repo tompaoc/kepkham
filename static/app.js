@@ -75,7 +75,26 @@ const ICON_PATHS = {
     plus: '<path d="M216,56V200a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V56A16,16,0,0,1,56,40H200A16,16,0,0,1,216,56Z" opacity="0.2"/><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/>',
     sparkle: '<path d="M194.82,151.43l-55.09,20.3-20.3,55.09a7.92,7.92,0,0,1-14.86,0l-20.3-55.09-55.09-20.3a7.92,7.92,0,0,1,0-14.86l55.09-20.3,20.3-55.09a7.92,7.92,0,0,1,14.86,0l20.3,55.09,55.09,20.3A7.92,7.92,0,0,1,194.82,151.43Z" opacity="0.2"/><path d="M197.58,129.06,146,110l-19-51.62a15.92,15.92,0,0,0-29.88,0L78,110l-51.62,19a15.92,15.92,0,0,0,0,29.88L78,178l19,51.62a15.92,15.92,0,0,0,29.88,0L146,178l51.62-19a15.92,15.92,0,0,0,0-29.88ZM137,164.22a8,8,0,0,0-4.74,4.74L112,223.85,91.78,169A8,8,0,0,0,87,164.22L32.15,144,87,123.78A8,8,0,0,0,91.78,119L112,64.15,132.22,119a8,8,0,0,0,4.74,4.74L191.85,144ZM144,40a8,8,0,0,1,8-8h16V16a8,8,0,0,1,16,0V32h16a8,8,0,0,1,0,16H184V64a8,8,0,0,1-16,0V48H152A8,8,0,0,1,144,40ZM248,88a8,8,0,0,1-8,8h-8v8a8,8,0,0,1-16,0V96h-8a8,8,0,0,1,0-16h8V72a8,8,0,0,1,16,0v8h8A8,8,0,0,1,248,88Z"/>',
     search: '<path d="M192,112a80,80,0,1,1-80-80A80,80,0,0,1,192,112Z" opacity="0.2"/><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/>',
+    moon: '<path d="M227.89,147.89A96,96,0,1,1,108.11,28.11,96.09,96.09,0,0,0,227.89,147.89Z" opacity="0.2"/><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/>',
+    sun: '<path d="M184,128a56,56,0,1,1-56-56A56,56,0,0,1,184,128Z" opacity="0.2"/><path d="M120,40V32a8,8,0,0,1,16,0v8a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-8-8A8,8,0,0,0,50.34,61.66Zm0,116.68-8,8a8,8,0,0,0,11.32,11.32l8-8a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l8-8a8,8,0,0,0-11.32-11.32l-8,8A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l8,8a8,8,0,0,0,11.32-11.32ZM40,120H32a8,8,0,0,0,0,16h8a8,8,0,0,0,0-16Zm88,88a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-8A8,8,0,0,0,128,208Zm96-88h-8a8,8,0,0,0,0,16h8a8,8,0,0,0,0-16Z"/>',
+    themeauto: '<path d="M224,128a96,96,0,0,1-96,96V32A96,96,0,0,1,224,128Z" opacity="0.2"/><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM40,128a88.11,88.11,0,0,1,80-87.63V215.63A88.11,88.11,0,0,1,40,128Zm96,87.63V40.37a88,88,0,0,1,0,175.26Z"/>',
 };
+
+/* ธีม: หมุน auto → light → dark (auto = ตาม OS)
+   data-theme บน <html> ชนะ @media เสมอ ทั้งสองทาง — ผู้ใช้เลือกทับ OS ได้ */
+const THEME_CYCLE = ["auto", "light", "dark"];
+const THEME_ICON = { auto: "themeauto", light: "sun", dark: "moon" };
+const _osDark = window.matchMedia("(prefers-color-scheme: dark)");
+function currentTheme() { return localStorage.getItem("kk_theme") || "auto"; }
+function applyTheme(mode) {
+    // "auto" = แปลงเป็น light/dark จริงตาม OS แล้ว set data-theme เสมอ
+    // (CSS จึงมี dark block เดียว — auto กับ toggle ใช้ selector เดียวกัน)
+    const effective = mode === "auto" ? (_osDark.matches ? "dark" : "light") : mode;
+    document.documentElement.setAttribute("data-theme", effective);
+    localStorage.setItem("kk_theme", mode);
+}
+applyTheme(currentTheme());   // เรียกทันทีตอนโหลด script กันหน้าจอกระพริบสว่างก่อนสลับ
+_osDark.addEventListener("change", () => { if (currentTheme() === "auto") applyTheme("auto"); });
 
 function icon(name, cls) {
     const path = ICON_PATHS[name];
@@ -106,6 +125,7 @@ function initChrome(active) {
             <div class="kk-pills">
                 <button class="kk-pill" id="pill-coins" onclick="location.href='board.html'">${icon("coin", "pill-ic")} <span class="num" id="coin-num">–</span></button>
                 <button class="kk-pill" id="pill-streak" onclick="location.href='index.html'"><span id="streak-flame">${icon("fire", "pill-ic")}</span> <span class="num" id="streak-num">–</span></button>
+                <button class="kk-pill" id="pill-theme" title="สลับสว่าง/มืด"></button>
                 <button class="kk-pill" id="pill-mute" title="เปิด/ปิดเสียง"></button>
             </div>
         </header>`;
@@ -123,6 +143,15 @@ function initChrome(active) {
     const paintMute = () => { muteBtn.innerHTML = icon(sfx.muted() ? "speakermute" : "speaker", "pill-ic"); };
     muteBtn.onclick = () => { sfx.toggleMute(); paintMute(); };
     paintMute();
+
+    const themeBtn = document.getElementById("pill-theme");
+    const paintTheme = () => { themeBtn.innerHTML = icon(THEME_ICON[currentTheme()], "pill-ic"); };
+    themeBtn.onclick = () => {
+        const next = THEME_CYCLE[(THEME_CYCLE.indexOf(currentTheme()) + 1) % THEME_CYCLE.length];
+        applyTheme(next);
+        paintTheme();
+    };
+    paintTheme();
 
     refreshPills();
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
