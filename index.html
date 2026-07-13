@@ -90,9 +90,10 @@ function renderHero(stats) {
                 </svg>
             </div>
             <button class="kk-btn px btn-cta" onclick="location.href='review.html?mix=1'">
-                ${icon("play", "pill-ic")} เริ่มเมนูวันนี้${stats.due_today > 0 ? ` — มี ${stats.due_today} คำรอทบทวน` : ""} (~${mins} นาที)
+                ${icon("play", "pill-ic")} เริ่มเรียนวันนี้
             </button>
-            <button class="kk-btn-blue px sub-cta" onclick="location.href='review.html?mix=1&limit=10'">☕ โหมดพัก 10 นาที (10 ใบพอ)</button>
+            <div class="cta-sub">${stats.due_today > 0 ? `มี ${stats.due_today} คำรอทบทวน · ` : ""}~${mins} นาที</div>
+            <button class="kk-btn-blue px sub-cta" onclick="location.href='review.html?mix=1&limit=10'">☕ พัก 10 นาที</button>
             ${stats.repair_offer ? `
                 <button class="repair-btn" id="repair-btn">
                     ${icon("fire", "pill-ic")} ไฟดับไปเมื่อวาน — ซ่อมด้วย ${stats.repair_cost} 🥟 ให้ต่อติดเหมือนเดิม
