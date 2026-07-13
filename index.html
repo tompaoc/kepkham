@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Itim&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
 <script>try{var m=localStorage.getItem("kk_theme")||"auto";var d=m==="dark"||(m==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}</script>
 <link rel="stylesheet" href="static/style.css">
+<link rel="stylesheet" href="static/assets.css">
 </head>
 <body>
 <main>
@@ -38,6 +39,15 @@ const ICONS = {
     home_routines: "🏠", entertainment_social: "🎮", money_banking: "💰",
     default: "📘"
 };
+/* theme → ไอคอนไอเทม pixel (ดู .ico-* ใน assets.css) */
+const THEME_ICO = {
+    bar_hospitality: "mug", knd_essence: "book",
+    self_family: "bunny", food_ordering: "basket", travel_directions: "globe",
+    shopping: "backpack", work_meetings: "crate", small_talk: "chime",
+    phone_online: "cards", health_doctor: "jam", emotions: "heart",
+    home_routines: "lantern", entertainment_social: "star", money_banking: "moneybag",
+    default: "seed"
+};
 const ZONE_TH = { A2: "ด่านเริ่มต้น", B1: "ด่านกลางทาง", B2: "ด่านเก๋า" };
 const GOAL_RING_C = 2 * Math.PI * 27;
 
@@ -57,10 +67,12 @@ function renderHero(stats) {
     const menuSize = Math.min(20, Math.max(8, stats.due_today + 10));
     const mins = Math.max(3, Math.round(menuSize * 0.35));
 
+    const remiMood = !stats.active_today ? "sleep" : (done >= stats.daily_goal ? "happy" : "");
+
     document.getElementById("hero-area").innerHTML = `
-        <div class="hero">
-          <img class="hero-remi" src="static/remi-idle.png" alt="Remi">
-          <div class="hero-panel">
+        <div class="hero kk-hero-bg px">
+          <div class="kk-remi px ${remiMood}"></div>
+          <div class="hero-panel kk-panel px">
             <p class="greet">${greeting()}</p>
             <div class="hero-row">
                 <div class="hero-streak">
@@ -77,10 +89,10 @@ function renderHero(stats) {
                         font-family="Baloo 2" font-weight="700" font-size="14">${done}/${stats.daily_goal}</text>
                 </svg>
             </div>
-            <button class="gold big btn-cta" onclick="location.href='review.html?mix=1'">
+            <button class="kk-btn px btn-cta" onclick="location.href='review.html?mix=1'">
                 ${icon("play", "pill-ic")} เริ่มเมนูวันนี้${stats.due_today > 0 ? ` — มี ${stats.due_today} คำรอทบทวน` : ""} (~${mins} นาที)
             </button>
-            <button class="sub-cta" onclick="location.href='review.html?mix=1&limit=10'">☕ โหมดพัก 10 นาที (10 ใบพอ)</button>
+            <button class="kk-btn-blue px sub-cta" onclick="location.href='review.html?mix=1&limit=10'">☕ โหมดพัก 10 นาที (10 ใบพอ)</button>
             ${stats.repair_offer ? `
                 <button class="repair-btn" id="repair-btn">
                     ${icon("fire", "pill-ic")} ไฟดับไปเมื่อวาน — ซ่อมด้วย ${stats.repair_cost} 🥟 ให้ต่อติดเหมือนเดิม
@@ -113,7 +125,7 @@ function renderPath(units) {
     document.getElementById("path-area").innerHTML = `
         <div class="zone-path" id="path">
             ${chips.map((c, i) => `
-                <div class="zone-chip ${i === currentIdx ? "current" : ""} ${c.pct >= 100 ? "done" : ""}">
+                <div class="zone-chip kk-panel px ${i === currentIdx ? "current" : ""} ${c.pct >= 100 ? "done" : ""}">
                     <div class="z-name">${c.pct >= 100 ? "✓ " : ""}${ZONE_TH[c.lv]}</div>
                     <div class="z-pct">${c.pct}% · ${c.got}/${c.total} คำ</div>
                     <div class="z-bar"><div style="width:${c.pct}%"></div></div>
@@ -136,12 +148,12 @@ function miniRing(u) {
 }
 
 function renderUnitCard(u) {
-    const iconCh = ICONS[u.theme] || ICONS.default;
+    const icoName = THEME_ICO[u.theme] || THEME_ICO.default;
     const zoneBadge = u.cefr ? `<span class="zone-badge zone-${u.cefr}">${u.cefr}</span>` : "";
     const complete = u.item_count > 0 && u.collected_count >= u.item_count;
     return `
-        <div class="card unit-card ${u.pinned ? "pinned" : ""} ${complete ? "complete" : ""}" data-goto="${encodeURIComponent(u.id)}">
-            <div class="unit-icon">${iconCh}</div>
+        <div class="unit-card kk-panel px ${u.pinned ? "pinned" : ""} ${complete ? "complete" : ""}" data-goto="${encodeURIComponent(u.id)}">
+            <div class="unit-icon kk-slot px"><span class="kk-ico ico-${icoName}"></span></div>
             <div class="unit-title">
                 <span class="name">${escapeHtml(u.name_th)}</span>
                 <span class="meta">${u.collected_count > 0 ? `เก็บแล้ว ${u.collected_count}/` : ""}${u.item_count} คำ${u.pinned ? " · เนื้อหาชีวิตจริงของนาย" : ""}</span>

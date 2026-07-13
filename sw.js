@@ -7,7 +7,7 @@
 
    เปลือกใช้ stale-while-revalidate: เปิดแอปได้ทันทีจากเครื่อง (ออฟไลน์ก็เปิดได้)
    แล้วแอบโหลดของใหม่ไว้เบื้องหลัง → เปิดรอบหน้าได้เวอร์ชันใหม่เอง */
-const BUILD = "20260712-233553";                 // build_static.py แทนค่าให้ตอน build
+const BUILD = "20260713-151433";                 // build_static.py แทนค่าให้ตอน build
 const SHELL = `kk-shell-${BUILD}`;
 const AUDIO = "kk-audio";                  // ชื่อคงที่ — kk-local.js ก็เขียนลงก้อนนี้
 
