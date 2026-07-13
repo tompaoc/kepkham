@@ -13,7 +13,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Itim&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
 <script>try{var m=localStorage.getItem("kk_theme")||"auto";var d=m==="dark"||(m==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}</script>
 <link rel="stylesheet" href="static/style.css">
-<link rel="stylesheet" href="static/assets.css">
 </head>
 <body>
 <main>
@@ -39,15 +38,20 @@ const ICONS = {
     home_routines: "🏠", entertainment_social: "🎮", money_banking: "💰",
     default: "📘"
 };
-/* theme → ไอคอนไอเทม pixel (ดู .ico-* ใน assets.css) */
-const THEME_ICO = {
-    bar_hospitality: "mug", knd_essence: "book",
-    self_family: "bunny", food_ordering: "basket", travel_directions: "globe",
-    shopping: "backpack", work_meetings: "crate", small_talk: "chime",
-    phone_online: "cards", health_doctor: "jam", emotions: "heart",
-    home_routines: "lantern", entertainment_social: "star", money_banking: "moneybag",
-    default: "seed"
-};
+/* มาสคอต "น้องถั่วงอก" — วาด SVG แบน น่ารัก กลมกลืน UI (ไม่ใช่ raster แปะ) */
+const MASCOT = `
+<svg viewBox="0 0 72 72" width="72" height="72" aria-hidden="true">
+  <ellipse cx="36" cy="64" rx="17" ry="4" fill="rgba(0,0,0,.06)"/>
+  <path d="M36 34 C30 26 20 26 18 32 C24 34 32 34 36 34Z" fill="#8FD16B"/>
+  <path d="M36 34 C42 24 54 24 55 31 C48 34 40 34 36 34Z" fill="#6FBF52"/>
+  <path d="M36 22 L36 40" stroke="#5AA83F" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="36" cy="48" rx="19" ry="17" fill="#FFF3D9" stroke="#F0DDB0" stroke-width="1.5"/>
+  <circle cx="29" cy="47" r="2.6" fill="#4A3B2A"/>
+  <circle cx="43" cy="47" r="2.6" fill="#4A3B2A"/>
+  <ellipse cx="26" cy="53" rx="3.4" ry="2.2" fill="#FFB6A8" opacity=".8"/>
+  <ellipse cx="46" cy="53" rx="3.4" ry="2.2" fill="#FFB6A8" opacity=".8"/>
+  <path d="M32 53 Q36 57 40 53" stroke="#4A3B2A" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>`;
 const ZONE_TH = { A2: "ด่านเริ่มต้น", B1: "ด่านกลางทาง", B2: "ด่านเก๋า" };
 const GOAL_RING_C = 2 * Math.PI * 27;
 
@@ -67,38 +71,41 @@ function renderHero(stats) {
     const menuSize = Math.min(20, Math.max(8, stats.due_today + 10));
     const mins = Math.max(3, Math.round(menuSize * 0.35));
 
-    const remiMood = !stats.active_today ? "sleep" : (done >= stats.daily_goal ? "happy" : "");
-
     document.getElementById("hero-area").innerHTML = `
-        <div class="hero kk-hero-bg px">
-          <div class="kk-remi px ${remiMood}"></div>
-          <div class="hero-panel kk-panel px">
-            <p class="greet">${greeting()}</p>
-            <div class="hero-row">
-                <div class="hero-streak">
-                    <div class="num"><span class="hero-flame ${flameCls}">${icon("fire")}</span> ${stats.streak_days} วันติด</div>
-                    <div class="lbl">${stats.active_today ? "วันนี้เรียนแล้ว เยี่ยม!" : "วันนี้ยังว่างอยู่ — เริ่มกันเลยมั้ย"}</div>
+        <div class="hero">
+          <div class="hero-mascot">${MASCOT}</div>
+          <p class="greet">${greeting()}</p>
+          <div class="hero-stats">
+            <div class="stat-chip stat-streak ${flameCls}">
+                <span class="sc-ico">${icon("fire")}</span>
+                <div class="sc-body">
+                    <div class="sc-num">${stats.streak_days}</div>
+                    <div class="sc-lbl">วันติดกัน</div>
                 </div>
-                <svg width="60" height="60" viewBox="0 0 64 64">
-                    <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(74,54,38,.16)" stroke-width="7"/>
-                    <circle cx="32" cy="32" r="27" fill="none" stroke="#E08A1E" stroke-width="7"
-                        stroke-linecap="round" stroke-dasharray="${GOAL_RING_C.toFixed(1)}"
-                        stroke-dashoffset="${offset.toFixed(1)}"
-                        transform="rotate(-90 32 32)" style="transition:stroke-dashoffset .6s ease"/>
-                    <text x="32" y="37" text-anchor="middle" fill="#5A3E1B"
-                        font-family="Baloo 2" font-weight="700" font-size="14">${done}/${stats.daily_goal}</text>
-                </svg>
             </div>
-            <button class="kk-btn px btn-cta" onclick="location.href='review.html?mix=1'">
-                ${icon("play", "pill-ic")} เริ่มเรียนวันนี้
-            </button>
-            <div class="cta-sub">${stats.due_today > 0 ? `มี ${stats.due_today} คำรอทบทวน · ` : ""}~${mins} นาที</div>
-            <button class="kk-btn-blue px sub-cta" onclick="location.href='review.html?mix=1&limit=10'">☕ พัก 10 นาที</button>
-            ${stats.repair_offer ? `
-                <button class="repair-btn" id="repair-btn">
-                    ${icon("fire", "pill-ic")} ไฟดับไปเมื่อวาน — ซ่อมด้วย ${stats.repair_cost} 🥟 ให้ต่อติดเหมือนเดิม
-                </button>` : ""}
+            <div class="stat-chip stat-goal">
+                <svg class="goal-ring" width="46" height="46" viewBox="0 0 46 46">
+                    <circle cx="23" cy="23" r="19" fill="none" stroke="var(--goal-track)" stroke-width="6"/>
+                    <circle cx="23" cy="23" r="19" fill="none" stroke="var(--goal-fill)" stroke-width="6"
+                        stroke-linecap="round" stroke-dasharray="${(2*Math.PI*19).toFixed(1)}"
+                        stroke-dashoffset="${((2*Math.PI*19)*(1-done/stats.daily_goal)).toFixed(1)}"
+                        transform="rotate(-90 23 23)" style="transition:stroke-dashoffset .6s ease"/>
+                </svg>
+                <div class="sc-body">
+                    <div class="sc-num">${done}<span class="sc-den">/${stats.daily_goal}</span></div>
+                    <div class="sc-lbl">เป้าวันนี้</div>
+                </div>
+            </div>
           </div>
+          <button class="btn-primary big btn-cta" onclick="location.href='review.html?mix=1'">
+              ${icon("play", "pill-ic")} เริ่มเรียนวันนี้
+          </button>
+          <div class="cta-sub">${stats.due_today > 0 ? `มี ${stats.due_today} คำรอทบทวน · ` : ""}ใช้เวลาราว ${mins} นาที</div>
+          <button class="btn-ghost sub-cta" onclick="location.href='review.html?mix=1&limit=10'">หรือพักสั้น ๆ 10 ใบก็พอ ☕</button>
+          ${stats.repair_offer ? `
+              <button class="repair-btn" id="repair-btn">
+                  ${icon("fire", "pill-ic")} ไฟดับไปเมื่อวาน — ซ่อมด้วย ${stats.repair_cost} 🥟 ให้ต่อติดเหมือนเดิม
+              </button>` : ""}
         </div>`;
 
     const rb = document.getElementById("repair-btn");
@@ -126,7 +133,7 @@ function renderPath(units) {
     document.getElementById("path-area").innerHTML = `
         <div class="zone-path" id="path">
             ${chips.map((c, i) => `
-                <div class="zone-chip kk-panel px ${i === currentIdx ? "current" : ""} ${c.pct >= 100 ? "done" : ""}">
+                <div class="zone-chip ${i === currentIdx ? "current" : ""} ${c.pct >= 100 ? "done" : ""}">
                     <div class="z-name">${c.pct >= 100 ? "✓ " : ""}${ZONE_TH[c.lv]}</div>
                     <div class="z-pct">${c.pct}% · ${c.got}/${c.total} คำ</div>
                     <div class="z-bar"><div style="width:${c.pct}%"></div></div>
@@ -149,12 +156,12 @@ function miniRing(u) {
 }
 
 function renderUnitCard(u) {
-    const icoName = THEME_ICO[u.theme] || THEME_ICO.default;
+    const iconCh = ICONS[u.theme] || ICONS.default;
     const zoneBadge = u.cefr ? `<span class="zone-badge zone-${u.cefr}">${u.cefr}</span>` : "";
     const complete = u.item_count > 0 && u.collected_count >= u.item_count;
     return `
-        <div class="unit-card kk-panel px ${u.pinned ? "pinned" : ""} ${complete ? "complete" : ""}" data-goto="${encodeURIComponent(u.id)}">
-            <div class="unit-icon kk-slot px"><span class="kk-ico ico-${icoName}"></span></div>
+        <div class="unit-card ${u.pinned ? "pinned" : ""} ${complete ? "complete" : ""}" data-goto="${encodeURIComponent(u.id)}">
+            <div class="unit-icon theme-${u.theme}">${iconCh}</div>
             <div class="unit-title">
                 <span class="name">${escapeHtml(u.name_th)}</span>
                 <span class="meta">${u.collected_count > 0 ? `เก็บแล้ว ${u.collected_count}/` : ""}${u.item_count} คำ${u.pinned ? " · เนื้อหาชีวิตจริงของนาย" : ""}</span>

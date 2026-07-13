@@ -50,8 +50,7 @@
     --shadow-card: 0 2px 10px rgba(0,0,0,.45);
     --shadow-pop:  0 8px 24px rgba(0,0,0,.6);
 }
-:root[data-theme="dark"] .unit-icon { background: #1c3d4d; }
-:root[data-theme="dark"] .unit-card.pinned { background: linear-gradient(135deg, #3b2f14 0%, #46370f 100%); }
+:root[data-theme="dark"] .unit-icon { background: var(--slot-bg); border-color: var(--slot-border); }
 :root[data-theme="dark"] .tag-slang { background: #46212e; color: #F4C0D1; }
 :root[data-theme="dark"] .tag-casual { background: #42310e; color: #FAC775; }
 :root[data-theme="dark"] .tag-neutral { background: #14314a; color: #B5D4F4; }
@@ -197,96 +196,133 @@ button.big { font-size: 17px; padding: 15px 24px; width: 100%; min-height: 54px;
 }
 .section-label:first-child { margin-top: 0; }
 
-/* ---------- Today Hero = ฉากฟาร์ม pixel-art ---------- */
-/* .kk-hero-bg (assets.css) วางพื้นหลังหมู่บ้าน — ที่นี่คุมแค่ layout */
+/* ============================================================
+   Home v3 "Cozy" — การ์ดนุ่ม อบอุ่น อ่านง่าย วาด CSS ล้วน (ไม่มี raster)
+   ============================================================ */
+:root { --goal-track: #EDE0C4; --goal-fill: #00A0DE; }
+:root[data-theme="dark"] { --goal-track: #4A3B26; --goal-fill: #3FC3E8; }
+
+/* ---------- Hero card ---------- */
 .hero {
-    border-radius: 4px; padding: 12px;
-    margin-bottom: 16px;
     position: relative; overflow: hidden;
-    min-height: 216px;
-    background-color: #bfe3ef;            /* กันฟ้าโล่งตอนภาพยังโหลด */
-    box-shadow: 0 4px 12px rgba(59,47,47,.28);
+    background: var(--card);
+    border: 2px solid var(--line);
+    border-radius: 22px;
+    padding: 18px 18px 16px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-card);
 }
-/* Remi ยืนบนพื้นหญ้ามุมขวาล่าง (เป็น element ไม่ใช่ <img>) */
-.kk-remi {
-    position: absolute; right: 10px; bottom: 0; z-index: 1;
-    width: 150px; height: 190px;
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,.45));
+.hero::before {   /* แสงอุ่นบางๆ ด้านบน ให้มีชีวิต ไม่แบนราชการ */
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 70px;
+    background: linear-gradient(180deg, #FFF4DD 0%, rgba(255,244,221,0) 100%);
     pointer-events: none;
-    animation: remiBob 3s ease-in-out infinite;
 }
-@keyframes remiBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-/* ป้ายกรอบไม้ (kk-panel) รองข้อมูล — จำกัดกว้างไม่ให้ยืดเต็มจอกว้าง */
-.hero-panel {
-    position: relative; z-index: 2;
-    width: 66%; max-width: 360px;
-    padding: 2px 8px 6px;
-    color: var(--ink);
+:root[data-theme="dark"] .hero::before {
+    background: linear-gradient(180deg, rgba(243,185,63,.10) 0%, rgba(0,0,0,0) 100%);
 }
-.hero .greet { font-size: 14px; margin: 0 0 8px; color: #6b4a2a; font-weight: 600; }
-.hero-panel .num { color: #3b2a17; }
-.hero-panel .lbl { color: #6b4a2a; }
-.hero-panel .btn-cta, .hero-panel .sub-cta { position: relative; z-index: 2; }
-.cta-sub { font-size: 12.5px; color: #6b4a2a; font-weight: 600; margin: 6px 0 0; }
-@media (max-width: 430px) {
-    .kk-remi { width: 116px; height: 147px; right: 4px; }
-    .hero-panel { width: 64%; }
+.hero > * { position: relative; }
+
+.hero-mascot {
+    position: absolute; top: 6px; right: 10px; width: 72px; height: 72px; z-index: 1;
+    animation: mascotBob 3.5s ease-in-out infinite;
+}
+@keyframes mascotBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+.hero .greet {
+    font-family: 'Baloo 2', 'Itim', sans-serif; font-weight: 700;
+    font-size: 18px; line-height: 1.35; color: var(--ink);
+    margin: 4px 66px 14px 2px;
 }
 
-/* ---------- ปุ่มไม้ 9-slice (ล้าง style ปุ่ม 3D เดิม) ---------- */
-.kk-btn, .kk-btn-blue {
-    background: transparent; box-shadow: none; border-radius: 0;
-    width: 100%; max-width: 300px; min-height: 44px; padding: 6px 14px;
-    font-family: 'Baloo 2', 'Itim', sans-serif; font-weight: 700; font-size: 16px;
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    line-height: 1.2; text-align: center; white-space: normal;
+/* สถิติ = ชิพคู่ (สตรีค + เป้าวันนี้) */
+.hero-stats { display: flex; gap: 10px; margin-bottom: 14px; }
+.stat-chip {
+    flex: 1; display: flex; align-items: center; gap: 10px;
+    background: var(--cream); border: 1.5px solid var(--line);
+    border-radius: 16px; padding: 10px 12px; min-width: 0;
 }
-.kk-btn { color: #4a3010; text-shadow: 0 1px 0 rgba(255,240,205,.55); font-size: 17px; }
-.kk-btn-blue { color: #fff; text-shadow: 0 1px 1px rgba(0,40,80,.5); margin-top: 8px; font-size: 15px; }
-.kk-btn:active, .kk-btn-blue:active { transform: translateY(2px); box-shadow: none; }
-.kk-btn .pill-ic svg, .kk-btn-blue .pill-ic svg { width: 18px; height: 18px; }
-.hero-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.hero-streak { flex: 1; min-width: 0; }
-.hero-streak .num { font-size: 27px; line-height: 1.05; }
-.hero-streak .lbl { font-size: 12.5px; opacity: .9; }
-.hero-row svg { flex-shrink: 0; }
-.hero .btn-cta { position: relative; z-index: 1; }
+.stat-chip .sc-ico { display: inline-flex; color: #E4472B; }
+.stat-chip .sc-ico svg { width: 26px; height: 26px; }
+.stat-streak.flame-off .sc-ico { color: var(--ink-soft); }
+.stat-streak.flame-goal .sc-ico { color: var(--bell-deep); }
+.sc-body { min-width: 0; }
+.sc-num { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 24px; line-height: 1; color: var(--ink); }
+.sc-den { font-size: 15px; color: var(--ink-soft); }
+.sc-lbl { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+.stat-goal .goal-ring { flex-shrink: 0; }
+
+/* ---------- ปุ่มหลัก เด้งกดได้ (ริมล่างสไตล์ Duolingo) ---------- */
+.btn-primary {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; border: 0; border-radius: 16px; cursor: pointer;
+    background: var(--dora-blue); color: #fff;
+    font-family: 'Baloo 2', 'Itim', sans-serif; font-weight: 700;
+    box-shadow: 0 4px 0 var(--dora-deep);
+    transition: transform .07s, box-shadow .07s;
+}
+.btn-primary.big { font-size: 18px; padding: 15px 20px; min-height: 56px; }
+.btn-primary:active { transform: translateY(4px); box-shadow: 0 0 0 var(--dora-deep); }
+.btn-primary .pill-ic svg { width: 20px; height: 20px; }
+.btn-cta { margin-top: 2px; }
+.cta-sub { text-align: center; font-size: 13px; color: var(--ink-soft); font-weight: 500; margin: 9px 0 0; }
+
+.btn-ghost {
+    display: block; width: 100%; text-align: center; margin-top: 8px;
+    background: none; border: 0; box-shadow: none; cursor: pointer;
+    color: var(--dora-deep); font-size: 14px; font-weight: 700; padding: 8px; min-height: 0;
+}
+.btn-ghost:active { transform: none; box-shadow: none; }
+
+.repair-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; margin-top: 10px; border: 0; border-radius: 14px;
+    background: var(--bell-gold); color: #4A3200; font-weight: 700; font-size: 13.5px;
+    padding: 11px 14px; box-shadow: 0 3px 0 var(--bell-deep); cursor: pointer;
+}
+.repair-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--bell-deep); }
+.repair-btn .pill-ic svg { width: 16px; height: 16px; }
 
 /* ---------- Zone path ---------- */
-.zone-path { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 2px; }
+.zone-path { display: flex; gap: 10px; margin-bottom: 18px; }
 .zone-chip {
-    flex: 1; min-width: 92px; padding: 0;
+    flex: 1; min-width: 0;
+    background: var(--card); border: 1.5px solid var(--line);
+    border-radius: 16px; padding: 11px 13px; box-shadow: var(--shadow-card);
+    transition: border-color .15s, box-shadow .15s;
 }
-.zone-chip.kk-panel { border-width: 11px; border-image-width: 11px; }
-.zone-chip.current { filter: drop-shadow(0 0 5px rgba(240,160,40,.85)); }
-.zone-chip.done { opacity: .9; }
-.zone-chip .z-name { font-family: 'Baloo 2'; font-weight: 700; font-size: 14px; color: #4a3212; }
-.zone-chip .z-pct { font-size: 11.5px; color: #6b4a2a; font-weight: 600; }
-.zone-chip .z-bar { height: 5px; background: var(--line); border-radius: 3px; margin-top: 5px; overflow: hidden; }
-.zone-chip .z-bar > div { height: 100%; background: var(--dora-blue); border-radius: 3px; }
+.zone-chip.current { border-color: var(--bell-gold); box-shadow: 0 0 0 3px rgba(243,185,63,.22), var(--shadow-card); }
+.zone-chip.done { background: #F2F9EE; border-color: #CDE7BC; }
+:root[data-theme="dark"] .zone-chip.done { background: #243219; border-color: #3B5A26; }
+.zone-chip .z-name { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14px; color: var(--ink); }
+.zone-chip .z-pct { font-size: 11.5px; color: var(--ink-soft); margin-top: 1px; }
+.zone-chip .z-bar { height: 6px; background: var(--line); border-radius: 99px; margin-top: 8px; overflow: hidden; }
+.zone-chip .z-bar > div { height: 100%; background: var(--dora-blue); border-radius: 99px; transition: width .5s ease; }
 .zone-chip.done .z-bar > div { background: var(--green); }
 
-/* ---------- Unit cards = การ์ดกรอบไม้ + ช่อง inventory ---------- */
+/* ---------- Unit cards ---------- */
 .unit-card {
-    display: flex; align-items: center; gap: 12px; cursor: pointer;
-    transition: transform .12s;
-    padding: 4px 8px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 13px; cursor: pointer;
+    background: var(--card); border: 1.5px solid var(--line);
+    border-radius: 16px; padding: 12px 14px; margin-bottom: 10px;
+    box-shadow: var(--shadow-card);
+    transition: transform .12s, box-shadow .12s, border-color .12s;
 }
-.unit-card:hover { transform: translateY(-2px); }
-.unit-card.pinned { filter: drop-shadow(0 0 4px rgba(240,160,40,.55)); }
-.unit-card.complete { opacity: .74; }
+.unit-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-pop); }
+.unit-card:active { transform: translateY(0); }
+.unit-card.pinned { border-color: var(--bell-gold); background: #FFFBF0; }
+:root[data-theme="dark"] .unit-card.pinned { background: #332a16; }
+.unit-card.complete { opacity: .72; }
 
-/* ช่องไม้ (kk-slot) — ไอคอนไอเทม pixel วางกลางช่อง */
+/* ไอคอนบท = ชิพสี่เหลี่ยมมนพาสเทล สไตล์เดียวหมด */
 .unit-icon {
-    width: 50px; height: 50px; flex-shrink: 0; padding: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: none;
+    width: 48px; height: 48px; flex-shrink: 0; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+    background: var(--slot-bg); border: 1.5px solid var(--slot-border);
 }
-.unit-icon .kk-ico { width: 30px; height: 30px; display: block; }
+.unit-card.pinned .unit-icon { background: #FFF1CF; border-color: var(--bell-gold); }
 .unit-title { flex: 1; min-width: 0; }
-.unit-title .name { font-size: 16px; display: block; margin-bottom: 1px; }
-.unit-title .meta { font-size: 12px; color: var(--ink-soft); }
-
+.unit-title .name { font-size: 16px; font-weight: 600; display: block; margin-bottom: 2px; color: var(--ink); }
+.unit-title .meta { font-size: 12.5px; color: var(--ink-soft); }
 .unit-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
 .zone-badge {
