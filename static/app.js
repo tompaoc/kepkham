@@ -113,6 +113,13 @@ const TABS = [
     { id: "board",  href: "board.html",       iconName: "backpack", label: "กระเป๋า" },
     { id: "inbox",  href: "inbox.html",       iconName: "notepencil", label: "จดไว้" },
 ];
+/* nav ล่าง = ตาม mockup (ไอคอน raster + label ฟาร์ม) */
+const NAV = [
+    { id: "home",   href: "index.html",  label: "หน้าหลัก", svg: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="rgba(251,235,184,.22)"/></svg>' },
+    { id: "board",  href: "board.html",  label: "คลังคำ",  img: "static/art/nav_words.png" },
+    { id: "review", href: "review.html", label: "ทบทวน",   img: "static/art/nav_review.png" },
+    { id: "inbox",  href: "inbox.html",  label: "จดไว้",   img: "static/art/nav_notes.png" },
+];
 
 function initChrome(active) {
     const header = `
@@ -131,11 +138,13 @@ function initChrome(active) {
         </header>`;
     const tabbar = `
         <nav class="tabbar">
-            ${TABS.map(t => `
+            ${NAV.map(t => `
                 <a class="tab ${t.id === active ? "active" : ""}" href="${t.href}">
-                    <span class="t-ico">${icon(t.iconName)}</span><span>${t.label}</span>
+                    <span class="t-ico">${t.svg ? t.svg : `<img class="tab-img" src="${t.img}" alt="">`}</span>
+                    <span class="t-lbl">${t.label}</span>
                 </a>`).join("")}
         </nav>`;
+    document.body.dataset.page = active;
     document.body.insertAdjacentHTML("afterbegin", header);
     document.body.insertAdjacentHTML("beforeend", tabbar);
 

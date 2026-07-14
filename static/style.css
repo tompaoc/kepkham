@@ -139,21 +139,24 @@ main { max-width: 720px; margin: 0 auto; padding: 16px 16px 40px; }
 
 /* ---------- Bottom tab bar (มือถือ) ---------- */
 .tabbar {
-    position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+    position: fixed; bottom: 0; left: 0; right: 0;
     background: linear-gradient(180deg, var(--brown) 0%, var(--brown-deep) 100%);
+    border-top: 3px solid #543417;
     display: flex; z-index: 50;
-    padding-bottom: env(safe-area-inset-bottom);
-    box-shadow: 0 -3px 12px rgba(90,60,25,.22);
+    padding: 9px 6px calc(10px + env(safe-area-inset-bottom));
+    box-shadow: 0 -3px 8px rgba(90,60,25,.2);
 }
 .tab {
     flex: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; gap: 2px; font-size: 11px; color: rgba(251,246,228,.62);
-    text-decoration: none; min-height: 48px; font-weight: 600;
+    justify-content: center; gap: 3px; text-decoration: none; opacity: .62;
+    transition: opacity .15s, transform .15s;
 }
-.tab .t-ico { display: flex; transition: transform .15s; }
-.tab .t-ico .icon { width: 22px; height: 22px; }
-.tab.active { color: #FBF6E4; font-weight: 700; }
-.tab.active .t-ico { transform: translateY(-2px) scale(1.12); }
+.tab .t-ico { display: flex; color: #FBEBB8; }
+.tab .t-ico .tab-img { width: 26px; height: 26px; object-fit: contain; }
+.tab .t-ico svg { width: 26px; height: 26px; }
+.tab .t-lbl { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 10.5px; color: #FBEBB8; }
+.tab.active { opacity: 1; }
+.tab.active .t-ico { transform: translateY(-1px) scale(1.06); }
 
 @media (min-width: 720px) {
     .tabbar { display: none; }
@@ -214,51 +217,111 @@ button.big { font-size: 17px; padding: 15px 24px; width: 100%; min-height: 54px;
 .section-label:first-child { margin-top: 0; }
 
 /* ============================================================
-   Home v4 "Farm Cozy" — พอร์ตจากดีไซน์ KepKham Cozy standalone
-   ครีมกระดาษ · หมึกน้ำตาล · การ์ด inset-ring · ปุ่มเขียวเก็บเกี่ยว
+   Home v5 "Farm Cozy" — พอร์ตตรงจาก mockup KepKham Cozy standalone
    ============================================================ */
+:root {
+    --edge:    #EAD79E;   /* เส้น ring ในการ์ด */
+    --tile:    #FBF3DA;   /* พื้นช่องไอคอน */
+    --tile2:   #F7E9C6;
+    --track:   #E7D6AE;   /* รางวงแหวน/เส้นคั่น */
+    --divider: #EEE0BE;   /* เส้นคั่นแถวบท */
+    --muted:   #A98A56;   /* ข้อความรอง */
+    --ink2:    #3A2A1A;
+}
+:root[data-theme="dark"] {
+    --edge:    #4A3B26;
+    --tile:    #3a2f1d;
+    --tile2:   #43371f;
+    --track:   #4A3B26;
+    --divider: #3a2f1d;
+    --muted:   #C9B08E;
+    --ink2:    #F2E7D4;
+}
+
+/* --- ซ่อน chrome header เดิมเฉพาะหน้าแรก (ใช้ banner ในเนื้อหาแทน ตาม mockup) --- */
+body[data-page="home"] .kk-header { display: none; }
+body[data-page="home"] main { padding-top: 14px; }
+
+/* ---------- Farm banner (หัวหน้าแรก) ---------- */
+.farm-banner {
+    display: flex; align-items: center; gap: 12px;
+    background: linear-gradient(180deg, var(--brown) 0%, var(--brown-deep) 100%);
+    border-radius: 16px; padding: 11px 14px; margin-bottom: 16px;
+    box-shadow: 0 4px 0 #563219, inset 0 2px 0 rgba(255,255,255,.14);
+}
+.fb-avatar {
+    width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+    background: var(--tile2); border: 2px solid #C79A54;
+    box-shadow: var(--ring-sh); overflow: hidden;
+    display: flex; align-items: flex-end; justify-content: center;
+}
+.fb-avatar img { width: 44px; height: auto; margin-bottom: -2px; }
+.fb-mid { flex: 1; min-width: 0; }
+.fb-sub { font-size: 11.5px; color: #EAD6A6; font-weight: 500; }
+.fb-title { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 22px; color: #FBF1D6; line-height: 1.05; text-shadow: 0 2px 0 rgba(0,0,0,.18); }
+.fb-coins {
+    display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+    background: rgba(0,0,0,.16); border-radius: 999px; padding: 5px 11px; border: 0; cursor: pointer;
+}
+.fb-coins img { width: 20px; height: 20px; object-fit: contain; }
+.fb-coins .num { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 15px; color: #FBEBB8; }
+.fb-toggle {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; padding: 0;
+    background: rgba(0,0,0,.16); box-shadow: none; border: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; min-height: 0;
+}
+.fb-toggle:active { transform: scale(.92); box-shadow: none; }
+
 
 /* ---------- Harvest card (hero) ---------- */
+/* ---------- Harvest panel (hero) ---------- */
 .hero {
     position: relative;
     background: var(--panel);
-    border: 3px solid var(--gold-deep);
-    border-radius: 16px;
-    padding: 16px 16px 14px;
-    margin-bottom: 16px;
-    box-shadow: var(--ring-sh), var(--shadow-card);
+    border: 3px solid var(--gold);
+    border-radius: 20px;
+    padding: 12px;
+    margin-bottom: 22px;
+    box-shadow: inset 0 0 0 2px var(--edge), 0 5px 12px rgba(90,60,25,.2);
 }
-.hero .greet {
-    font-family: 'Baloo 2', 'Mali', sans-serif; font-weight: 700;
-    font-size: 18px; line-height: 1.35; color: var(--ink);
-    margin: 2px 2px 12px;
+/* ฉากหมู่บ้าน + Remi + บับเบิลทักทาย */
+.village-hero {
+    position: relative; height: 150px; margin-bottom: 12px;
+    border-radius: 13px; overflow: hidden;
+    border: 3px solid var(--gold-deep); box-shadow: inset 0 0 0 2px #B98A4E;
 }
-.harvest-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-.harvest-goal {
-    flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px;
-    background: var(--card); border-radius: 13px; padding: 9px 12px;
-    box-shadow: var(--ring-sh);
+.village-hero .vh-bg { width: 100%; height: 100%; object-fit: cover; object-position: center 22%; display: block; }
+.village-hero .vh-remi {
+    position: absolute; left: 8px; bottom: 2px; width: 74px; height: auto;
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,.35)); animation: kkbob 3.5s ease-in-out infinite;
 }
-.hg-basket { font-size: 28px; flex-shrink: 0; filter: drop-shadow(0 1px 1px rgba(0,0,0,.12)); }
-.hg-txt { min-width: 0; flex: 1; }
-.hg-num { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 15px; color: var(--ink); }
-.hg-sub { font-size: 12px; color: var(--ink-soft); margin-top: 1px; }
-.hg-bar { height: 6px; background: var(--line); border-radius: 99px; margin-top: 7px; overflow: hidden; }
-.hg-bar > div { height: 100%; background: linear-gradient(90deg, var(--green), var(--green-deep)); border-radius: 99px; transition: width .5s ease; }
+@keyframes kkbob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.village-hero .vh-bubble {
+    position: absolute; right: 8px; top: 8px; max-width: 62%;
+    background: rgba(30,20,8,.62); color: #FBF1D6;
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 12.5px;
+    padding: 5px 11px; border-radius: 999px;
+}
 
-.streak-chip {
-    flex-shrink: 0; display: flex; align-items: center; gap: 5px;
-    background: var(--card); border-radius: 13px; padding: 10px 13px;
-    box-shadow: var(--ring-sh); color: var(--ink);
+/* แถวเป้าหมายเก็บเกี่ยว: วงแหวน + ตัวเลข + เส้นคั่น + สตรีค */
+.goal-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; padding: 0 4px; }
+.goal-ring-wrap { position: relative; width: 70px; height: 70px; flex-shrink: 0; }
+.goal-ring-wrap .gr-center {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
 }
-.streak-chip .sc-ico { display: inline-flex; color: #E4472B; }
-.streak-chip .sc-ico svg { width: 22px; height: 22px; }
-.streak-chip b { font-family: 'Baloo 2', sans-serif; font-size: 22px; line-height: 1; }
-.streak-chip .sc-u { font-size: 12px; color: var(--ink-soft); }
-.streak-chip.flame-off .sc-ico { color: var(--ink-soft); }
-.streak-chip.flame-goal .sc-ico { color: var(--gold-deep); }
+.goal-ring-wrap .gr-center img { width: 34px; height: auto; }
+.goal-txt { flex: 1; min-width: 0; }
+.hg-num { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 15px; color: var(--ink2); }
+.hg-num .hg-done { color: var(--green-lip); }
+.hg-num .hg-total { color: var(--muted); font-size: 13px; }
+.hg-sub { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+.goal-div { width: 2px; height: 42px; background: var(--track); border-radius: 2px; flex-shrink: 0; }
+.streak-col { display: flex; flex-direction: column; align-items: center; gap: 1px; flex-shrink: 0; }
+.streak-col img { width: 36px; height: auto; }
+.streak-col .st-num { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 18px; color: var(--ink2); line-height: 1; }
+.streak-col .st-num span { font-size: 11px; color: var(--muted); font-weight: 600; }
 
-/* ---------- ปุ่มเขียวเก็บเกี่ยว (ริมล่าง + ไฮไลต์บน) ---------- */
+/* ---------- ปุ่มเขียวเก็บเกี่ยว ---------- */
 .btn-primary {
     display: flex; align-items: center; justify-content: center; gap: 9px;
     width: 100%; border: 0; border-radius: 15px; cursor: pointer;
@@ -267,65 +330,55 @@ button.big { font-size: 17px; padding: 15px 24px; width: 100%; min-height: 54px;
     box-shadow: 0 5px 0 var(--green-lip), inset 0 2px 0 rgba(255,255,255,.28);
     transition: transform .07s, box-shadow .07s;
 }
-.btn-primary.big { font-size: 17px; padding: 15px 20px; min-height: 56px; }
+.btn-primary.big { font-size: 17px; padding: 15px 20px; min-height: 54px; }
 .btn-primary:active { transform: translateY(5px); box-shadow: 0 0 0 var(--green-lip), inset 0 2px 0 rgba(255,255,255,.28); }
-.btn-primary .pill-ic svg { width: 20px; height: 20px; }
-.btn-cta { margin-top: 2px; }
-.cta-sub { text-align: center; font-size: 12.5px; color: var(--ink-soft); margin: 10px 0 0; }
-
-.btn-ghost {
-    display: block; width: 100%; text-align: center; margin-top: 8px;
-    background: none; border: 0; box-shadow: none; cursor: pointer;
-    color: var(--gold-deep); font-size: 13.5px; font-weight: 700; padding: 6px; min-height: 0;
-}
-.btn-ghost:active { transform: none; box-shadow: none; }
+.btn-primary .pill-ic svg { width: 18px; height: 18px; }
+.btn-cta { margin-top: 0; }
+.cta-sub { text-align: center; font-size: 12.5px; color: var(--muted); margin: 10px 0 0; }
+.btn-ghost { display: none; }   /* mockup ไม่มีปุ่มพัก — ซ่อนไว้ */
 
 .repair-btn {
     display: flex; align-items: center; justify-content: center; gap: 6px;
-    width: 100%; margin-top: 10px; border: 0; border-radius: 14px;
+    width: 100%; margin-top: 12px; border: 0; border-radius: 14px;
     background: var(--gold); color: #4A3200; font-weight: 700; font-size: 13.5px;
     padding: 11px 14px; box-shadow: 0 3px 0 var(--gold-deep); cursor: pointer;
 }
 .repair-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--gold-deep); }
 .repair-btn .pill-ic svg { width: 16px; height: 16px; }
 
-/* ---------- Zone path (ชิพระดับ อุ่น) ---------- */
-.zone-path { display: flex; gap: 10px; margin-bottom: 18px; }
-.zone-chip {
-    flex: 1; min-width: 0;
-    background: var(--card); border-radius: 14px; padding: 11px 13px;
-    box-shadow: var(--ring-sh); transition: box-shadow .15s;
+/* ---------- Zone pill (หัวกลุ่มบท) ---------- */
+.zone-pill {
+    display: inline-block; background: var(--gold-deep); color: var(--panel);
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 12.5px;
+    padding: 5px 13px; border-radius: 9px; margin: 6px 0 10px;
+    box-shadow: 0 2px 0 rgba(90,60,25,.25);
 }
-.zone-chip.current { box-shadow: var(--ring-sh), 0 0 0 2px var(--gold-deep); }
-.zone-chip.done .z-name { color: var(--green-deep); }
-.zone-chip .z-name { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14px; color: var(--ink); }
-.zone-chip .z-pct { font-size: 11.5px; color: var(--ink-soft); margin-top: 1px; }
-.zone-chip .z-bar { height: 6px; background: var(--line); border-radius: 99px; margin-top: 8px; overflow: hidden; }
-.zone-chip .z-bar > div { height: 100%; background: linear-gradient(90deg, var(--green), var(--green-deep)); border-radius: 99px; transition: width .5s ease; }
 
-/* ---------- Unit cards (การ์ด inset-ring) ---------- */
-.unit-card {
+/* ---------- Unit list card + rows ---------- */
+.unit-list {
+    background: var(--card); border-radius: 20px; overflow: hidden; margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(60,55,45,.04), 0 6px 18px rgba(90,60,25,.08);
+}
+.unit-row {
     display: flex; align-items: center; gap: 13px; cursor: pointer;
-    background: var(--card); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px;
-    box-shadow: var(--ring-sh), var(--shadow-card);
-    transition: transform .12s, box-shadow .12s;
+    padding: 13px 15px; border-bottom: 2px solid var(--divider);
+    transition: background .12s;
 }
-.unit-card:hover { transform: translateY(-2px); box-shadow: var(--ring-sh), var(--shadow-pop); }
-.unit-card:active { transform: translateY(0); }
-.unit-card.pinned { box-shadow: inset 0 0 0 2px var(--gold), var(--shadow-card); }
-.unit-card.complete { opacity: .72; }
-
-/* ไอคอนบท = ชิพสี่เหลี่ยมมนอุ่น สไตล์เดียวหมด */
-.unit-icon {
-    width: 48px; height: 48px; flex-shrink: 0; border-radius: 13px;
-    display: flex; align-items: center; justify-content: center; font-size: 24px;
-    background: var(--panel); box-shadow: var(--ring-sh);
+.unit-row:last-child { border-bottom: 0; }
+.unit-row:active { background: var(--panel); }
+.unit-row.complete { opacity: .68; }
+.unit-tile {
+    width: 50px; height: 50px; flex-shrink: 0; border-radius: 13px;
+    background: var(--tile); border: 2px solid #C79A54; box-shadow: var(--ring-sh);
+    display: flex; align-items: center; justify-content: center; font-size: 26px; overflow: hidden;
 }
-.unit-card.pinned .unit-icon { background: #FBEFD0; }
-.unit-title { flex: 1; min-width: 0; }
-.unit-title .name { font-size: 16px; font-weight: 600; display: block; margin-bottom: 2px; color: var(--ink); }
-.unit-title .meta { font-size: 12.5px; color: var(--ink-soft); }
-.unit-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.unit-tile img { width: 40px; height: 40px; object-fit: contain; }
+.unit-row.pinned .unit-tile { border-color: var(--gold); }
+.unit-info { flex: 1; min-width: 0; }
+.unit-name { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 15.5px; color: var(--ink); }
+.unit-meta { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+.unit-chevron { flex-shrink: 0; margin-right: 2px; display: flex; }
+.unit-chevron svg { width: 9px; height: 15px; }
 
 .zone-badge {
     font-family: 'Baloo 2'; font-size: 11px; font-weight: 700; padding: 3px 9px;
@@ -557,15 +610,17 @@ textarea:focus, input[type=text]:focus { outline: none; border-color: var(--dora
 }
 
 /* ---------- ค้นหาคำ (หน้าแรก) ---------- */
-.search-wrap { position: relative; margin-bottom: 14px; }
+.search-wrap { position: relative; margin-bottom: 18px; }
 .search-box {
-    font-family: 'Itim', sans-serif; font-size: 15px; width: 100%;
-    border: 2px solid var(--line); border-radius: 999px; padding: 11px 18px 11px 42px;
-    background: var(--card); color: var(--ink); min-height: 46px;
+    font-family: 'Mali', 'Itim', sans-serif; font-size: 14.5px; width: 100%;
+    border: 2.5px solid var(--gold); border-radius: 14px; padding: 10px 16px 10px 40px;
+    background: var(--panel); color: var(--ink); min-height: 44px;
+    box-shadow: var(--ring-sh);
 }
-.search-box:focus { outline: none; border-color: var(--dora-blue); }
-.search-wrap .s-ico { position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
-    color: var(--ink-soft); width: 17px; height: 17px; }
+.search-box::placeholder { color: var(--muted); }
+.search-box:focus { outline: none; border-color: var(--gold-deep); }
+.search-wrap .s-ico { position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: #B08A4E; width: 17px; height: 17px; }
 .search-results { margin-bottom: 14px; }
 .search-hit { display: flex; align-items: center; gap: 10px; padding: 11px 14px;
     background: var(--card); border-radius: 12px; margin-bottom: 6px;

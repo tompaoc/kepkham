@@ -12,23 +12,23 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Itim&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
 <script>try{var m=localStorage.getItem("kk_theme")||"auto";var d=m==="dark"||(m==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}</script>
-<link rel="stylesheet" href="static/style.css">
+<link rel="stylesheet" href="static/style.css?v=20260715-000048">
 </head>
 <body>
 <main>
-    <div id="hero-area"><div class="skeleton" style="height:170px;"></div></div>
+    <div id="banner-area"></div>
     <div class="search-wrap">
         <span class="s-ico" id="search-ico"></span>
         <input type="text" class="search-box" id="search-box"
-               placeholder="ค้นหาคำ... เช่น schooner หรือ เก็บแก้ว">
+               placeholder="ค้นหาคำ… เช่น schooner หรือ เก็บแก้ว">
     </div>
     <div class="search-results" id="search-results"></div>
-    <div id="path-area"></div>
+    <div id="hero-area"><div class="skeleton" style="height:230px;"></div></div>
     <div id="list"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
 </main>
 <script>window.KK_STATIC=true;</script>
-<script src="static/kk-local.js"></script>
-<script src="static/app.js"></script>
+<script src="static/kk-local.js?v=20260715-000048"></script>
+<script src="static/app.js?v=20260715-000048"></script>
 <script>
 const ICONS = {
     bar_hospitality: "🍻", knd_essence: "🎓",
@@ -60,28 +60,40 @@ function renderHero(stats) {
     const remain = Math.max(0, stats.daily_goal - done);
     const goalPct = Math.round(done / stats.daily_goal * 100);
 
+    const RC = 2 * Math.PI * 29;
+    const roff = RC * (1 - done / stats.daily_goal);
+
     document.getElementById("hero-area").innerHTML = `
         <div class="hero">
-          <p class="greet">${greeting()}</p>
-          <div class="harvest-row">
-            <div class="harvest-goal">
-                <div class="hg-basket">🧺</div>
-                <div class="hg-txt">
-                    <div class="hg-num">เก็บผลวันนี้ ${done}/${stats.daily_goal} คำ</div>
-                    <div class="hg-sub">${remain > 0 ? `อีก ${remain} ใบก็เต็มตะกร้า` : "เต็มตะกร้าแล้ว เก่งมาก! 🎉"}</div>
-                    <div class="hg-bar"><div style="width:${goalPct}%"></div></div>
-                </div>
+          <div class="village-hero">
+            <img class="vh-bg" src="static/art/village.png" alt="ฟาร์ม">
+            <img class="vh-remi" src="static/art/remi.png" alt="Remi">
+            <div class="vh-bubble">${greeting()}</div>
+          </div>
+          <div class="goal-row">
+            <div class="goal-ring-wrap">
+                <svg width="70" height="70" viewBox="0 0 70 70">
+                    <circle cx="35" cy="35" r="29" fill="none" stroke="var(--track)" stroke-width="7"/>
+                    <circle cx="35" cy="35" r="29" fill="none" stroke="#7CB342" stroke-width="7"
+                        stroke-linecap="round" stroke-dasharray="${RC.toFixed(1)}" stroke-dashoffset="${roff.toFixed(1)}"
+                        transform="rotate(-90 35 35)" style="transition:stroke-dashoffset .6s ease"/>
+                </svg>
+                <div class="gr-center"><img src="static/art/ic_basket.png" alt=""></div>
             </div>
-            <div class="streak-chip ${flameCls}">
-                <span class="sc-ico">${icon("fire")}</span>
-                <b>${stats.streak_days}</b><span class="sc-u">วัน</span>
+            <div class="goal-txt">
+                <div class="hg-num">เก็บผลวันนี้ <span class="hg-done">${done}</span><span class="hg-total">/${stats.daily_goal} คำ</span></div>
+                <div class="hg-sub">${remain > 0 ? `อีก ${remain} ใบก็เต็มตะกร้า` : "เต็มตะกร้าแล้ว เก่งมาก!"}</div>
+            </div>
+            <div class="goal-div"></div>
+            <div class="streak-col">
+                <img src="static/art/remi.png" alt="">
+                <div class="st-num">${stats.streak_days}<span> วัน</span></div>
             </div>
           </div>
           <button class="btn-primary big btn-cta" onclick="location.href='review.html?mix=1'">
               ${icon("play", "pill-ic")} เริ่มเรียนวันนี้
           </button>
           <div class="cta-sub">${stats.due_today > 0 ? `มี ${stats.due_today} คำรอทบทวน · ` : ""}ราว ${mins} นาที</div>
-          <button class="btn-ghost sub-cta" onclick="location.href='review.html?mix=1&limit=10'">หรือพักสั้น ๆ 10 ใบก็พอ ☕</button>
           ${stats.repair_offer ? `
               <button class="repair-btn" id="repair-btn">
                   ${icon("fire", "pill-ic")} ไฟดับไปเมื่อวาน — ซ่อมด้วย ${stats.repair_cost} 🥟 ให้ต่อติดเหมือนเดิม
@@ -101,24 +113,37 @@ function renderHero(stats) {
     };
 }
 
-function renderPath(units) {
-    const levels = ["A2", "B1", "B2"];
-    const chips = levels.map(lv => {
-        const us = units.filter(u => u.pack_type === "core" && u.cefr === lv);
-        const total = us.reduce((s, u) => s + u.item_count, 0);
-        const got = us.reduce((s, u) => s + u.collected_count, 0);
-        return { lv, pct: total ? Math.round(got / total * 100) : 0, got, total };
-    });
-    const currentIdx = chips.findIndex(c => c.pct < 100);
-    document.getElementById("path-area").innerHTML = `
-        <div class="zone-path" id="path">
-            ${chips.map((c, i) => `
-                <div class="zone-chip ${i === currentIdx ? "current" : ""} ${c.pct >= 100 ? "done" : ""}">
-                    <div class="z-name">${c.pct >= 100 ? "✓ " : ""}${ZONE_TH[c.lv]}</div>
-                    <div class="z-pct">${c.pct}% · ${c.got}/${c.total} คำ</div>
-                    <div class="z-bar"><div style="width:${c.pct}%"></div></div>
-                </div>`).join("")}
+/* theme → ไอคอน raster (จาก mockup) ที่มี; ที่เหลือใช้อีโมจิในช่องเดียวกัน */
+const THEME_IMG = {
+    small_talk: "ic_smalltalk", food_ordering: "ic_food",
+    travel_directions: "ic_travel", money_banking: "coin",
+};
+
+function thaiDate() {
+    try { return new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long" }); }
+    catch (e) { return "ฟาร์มของทอม"; }
+}
+
+function renderBanner(stats) {
+    const dark = () => document.documentElement.getAttribute("data-theme") === "dark";
+    document.getElementById("banner-area").innerHTML = `
+        <div class="farm-banner">
+            <div class="fb-avatar"><img src="static/art/remi.png" alt="Remi"></div>
+            <div class="fb-mid">
+                <div class="fb-sub">${thaiDate()} · ฟาร์มของทอม</div>
+                <div class="fb-title">เก็บคำ</div>
+            </div>
+            <button class="fb-coins" onclick="location.href='board.html'">
+                <img src="static/art/coin.png" alt=""><span class="num">${stats.coins}</span>
+            </button>
+            <button class="fb-toggle" id="banner-theme" title="สลับสว่าง/มืด">${dark() ? "🌙" : "☀️"}</button>
         </div>`;
+    const tb = document.getElementById("banner-theme");
+    if (tb) tb.onclick = () => {
+        const next = THEME_CYCLE[(THEME_CYCLE.indexOf(currentTheme()) + 1) % THEME_CYCLE.length];
+        applyTheme(next);
+        tb.textContent = dark() ? "🌙" : "☀️";
+    };
 }
 
 function miniRing(u) {
@@ -135,18 +160,23 @@ function miniRing(u) {
         </svg>`;
 }
 
-function renderUnitCard(u) {
-    const iconCh = ICONS[u.theme] || ICONS.default;
-    const zoneBadge = u.cefr ? `<span class="zone-badge zone-${u.cefr}">${u.cefr}</span>` : "";
+function renderUnitRow(u) {
     const complete = u.item_count > 0 && u.collected_count >= u.item_count;
+    const imgName = THEME_IMG[u.theme];
+    const iconHtml = imgName
+        ? `<img src="static/art/${imgName}.png" alt="">`
+        : (ICONS[u.theme] || ICONS.default);
+    const meta = u.collected_count > 0
+        ? (complete ? `เก็บครบ ${u.item_count} คำ ✓` : `เก็บแล้ว ${u.collected_count}/${u.item_count}`)
+        : `${u.item_count} คำ · ยังไม่เริ่ม`;
     return `
-        <div class="unit-card ${u.pinned ? "pinned" : ""} ${complete ? "complete" : ""}" data-goto="${encodeURIComponent(u.id)}">
-            <div class="unit-icon theme-${u.theme}">${iconCh}</div>
-            <div class="unit-title">
-                <span class="name">${escapeHtml(u.name_th)}</span>
-                <span class="meta">${u.collected_count > 0 ? `เก็บแล้ว ${u.collected_count}/` : ""}${u.item_count} คำ${u.pinned ? " · เนื้อหาชีวิตจริงของนาย" : ""}</span>
+        <div class="unit-row ${u.pinned ? "pinned" : ""} ${complete ? "complete" : ""}" data-goto="${encodeURIComponent(u.id)}">
+            <div class="unit-tile">${iconHtml}</div>
+            <div class="unit-info">
+                <div class="unit-name">${escapeHtml(u.name_th)}</div>
+                <div class="unit-meta">${meta}</div>
             </div>
-            <div class="unit-right">${miniRing(u)}${zoneBadge}</div>
+            <span class="unit-chevron"><svg viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" stroke="rgba(90,60,25,.32)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         </div>`;
 }
 
@@ -165,11 +195,17 @@ function foldSection(labelHtml, bodyHtml, open) {
         </details>`;
 }
 
+function section(pill, us) {
+    if (!us.length) return "";
+    return `<div class="zone-pill">${pill}</div>
+        <div class="unit-list">${us.map(renderUnitRow).join("")}</div>`;
+}
+
 async function main() {
     const [stats, units] = await Promise.all([apiGet("/api/stats"), apiGet("/api/units")]);
 
+    renderBanner(stats);
     renderHero(stats);
-    renderPath(units);
 
     const pinned = units.filter(u => u.pinned);
     const core = units.filter(u => !u.pinned && u.pack_type === "core");
@@ -177,39 +213,16 @@ async function main() {
     const trend = units.filter(u => !u.pinned && u.pack_type === "trend");
 
     let html = "";
-    if (pinned.length) {
-        html += `<div class="section-label">📌 ปักหมุด — ใช้ได้ทุกวัน</div>`;
-        html += pinned.map(renderUnitCard).join("");
-    }
+    if (pinned.length) html += section("📌 ปักหมุด — ใช้ได้ทุกวัน", pinned);
     if (core.length) {
         const byLevel = {};
         core.forEach(u => { (byLevel[u.cefr] = byLevel[u.cefr] || []).push(u); });
-        const levels = Object.keys(byLevel).sort();
-        // ด่านปัจจุบัน = ด่านแรกที่ยังเก็บไม่ครบ → เปิดไว้ ที่เหลือพับ
-        const currentLevel = levels.find(lv => {
-            const us = byLevel[lv];
-            return us.reduce((s, u) => s + u.collected_count, 0) <
-                   us.reduce((s, u) => s + u.item_count, 0);
-        }) || levels[0];
-        for (const level of levels) {
-            html += foldSection(
-                `🗺️ เส้นทางของเรา — ${ZONE_TH[level] || level} (${level}) · ${byLevel[level].length} บท`,
-                continueFirst(byLevel[level]).map(renderUnitCard).join(""),
-                level === currentLevel,
-            );
-        }
+        Object.keys(byLevel).sort().forEach(level => {
+            html += section(`🗺️ ${ZONE_TH[level] || level} · ${level}`, continueFirst(byLevel[level]));
+        });
     }
-    if (trend.length) {
-        html += `<div class="section-label">🔥 ของสดประจำสัปดาห์</div>`;
-        html += trend.map(renderUnitCard).join("");
-    }
-    if (knd.length) {
-        html += foldSection(
-            `🎓 ของเด็ดจากพี่ๆ คำนี้ดี · ${knd.length} บท`,
-            continueFirst(knd).map(renderUnitCard).join(""),
-            false,
-        );
-    }
+    if (trend.length) html += section("🔥 ของสดประจำสัปดาห์", trend);
+    if (knd.length) html += section("🎓 ของเด็ดจาก คำนี้ดี", continueFirst(knd));
     if (!html) html = `<div class="empty-state">ยังไม่มีบทเรียน</div>`;
 
     document.getElementById("list").innerHTML = html;
