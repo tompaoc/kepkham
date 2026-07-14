@@ -4,31 +4,42 @@
    ============================================================ */
 
 :root {
-    /* สี */
-    --dora-blue:  #00A0DE;
-    --dora-deep:  #0077B6;
+    /* ธีมฟาร์มอบอุ่น (จากดีไซน์ Cozy) */
+    --cream:      #F2E6C6;   /* พื้นหน้า */
+    --panel:      #F7EDD2;   /* แผงครีมอ่อน */
+    --card:       #FFFBF0;   /* การ์ด */
+    --ink:        #3A2A1A;   /* หมึกน้ำตาลเข้ม */
+    --ink-soft:   #A98A56;   /* รองสีน้ำตาลนวล */
+    --ring:       #EAD79E;   /* เส้นขอบ ring ด้านในการ์ด */
+    --line:       #E7D6AE;
+
+    --gold:       #CBA45A;   /* ทอง */
+    --gold-deep:  #8A5A32;   /* น้ำตาลเข้ม (ขอบ/pill) */
+    --brown:      #946237;   /* แบนเนอร์ */
+    --brown-deep: #6E4522;
+
+    --green:      #84C24E;   /* ปุ่มเก็บเกี่ยว */
+    --green-deep: #6BA436;
+    --green-lip:  #4C7A22;   /* ริมล่างปุ่ม */
+
+    --dora-blue:  #3E93C9;   /* สำรอง (ลิงก์/โฟกัส) โทนอุ่นขึ้น */
+    --dora-deep:  #2E7196;
     --dora-red:   #E4472B;
-    --bell-gold:  #F3B93F;
-    --bell-deep:  #D0941C;
-    --cream:      #FBF1DA;
-    --card:       #FFFFFF;
-    --ink:        #3B2F2F;
-    --ink-soft:   #8A6B4A;
-    --green:      #46B450;
-    --green-deep: #2E8B38;
-    --line:       #EFE3C8;
-    --board-frame: #EADFC4;
+    --bell-gold:  #CBA45A;   /* alias เดิม → gold */
+    --bell-deep:  #8A5A32;
+    --note-gold:  #8A5A32;
+    --board-frame: #EFE3C8;
     --board-border:#D9C89E;
-    --slot-bg:     #FFF9EA;
-    --slot-border: #E3D5B4;
+    --slot-bg:     #FBF3DA;
+    --slot-border: #E7D6AE;
     --example-green:#55684A;
-    --note-gold:   #B8862E;
 
     /* ระยะ/มุม/เงา */
     --r-card: 16px;
     --r-btn: 14px;
-    --shadow-card: 0 2px 10px rgba(59,47,47,.08);
-    --shadow-pop:  0 8px 24px rgba(59,47,47,.16);
+    --shadow-card: 0 5px 12px rgba(90,60,25,.14);
+    --shadow-pop:  0 8px 22px rgba(90,60,25,.22);
+    --ring-sh:     inset 0 0 0 2px var(--ring);
 }
 
 /* ---------- Dark mode ----------
@@ -37,17 +48,23 @@
    เปลี่ยน data-theme เอาชนะ OS ได้ทั้งสองทาง (ทอมเลิกกะดึก อยากมืดแม้มือถือตั้ง light) */
 :root[data-theme="dark"] {
     --cream:      #211a11;
+    --panel:      #2c2416;
     --card:       #322818;
     --ink:        #F2E7D4;
     --ink-soft:   #C9B08E;
+    --ring:       #4A3B26;
     --line:       #4A3B26;
+    --gold:       #DBAA52;
+    --gold-deep:  #B98A3E;
+    --brown:      #4a3320;
+    --brown-deep: #362415;
     --board-frame:#2c2416;
     --board-border:#4A3B26;
     --slot-bg:    #3a2f1d;
     --slot-border:#4A3B26;
     --example-green:#A4C68D;
     --note-gold:  #DBAA52;
-    --shadow-card: 0 2px 10px rgba(0,0,0,.45);
+    --shadow-card: 0 4px 12px rgba(0,0,0,.45);
     --shadow-pop:  0 8px 24px rgba(0,0,0,.6);
 }
 :root[data-theme="dark"] .unit-icon { background: var(--slot-bg); border-color: var(--slot-border); }
@@ -67,7 +84,7 @@
 html { scroll-behavior: smooth; }
 
 body {
-    font-family: 'Itim', -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif;
+    font-family: 'Mali', 'Itim', -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif;
     background: var(--cream);
     color: var(--ink);
     margin: 0;
@@ -75,19 +92,19 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, .num { font-family: 'Baloo 2', 'Itim', sans-serif; font-weight: 700; }
+h1, h2, h3, .num { font-family: 'Baloo 2', 'Mali', sans-serif; font-weight: 700; }
 
 main { max-width: 720px; margin: 0 auto; padding: 16px 16px 40px; }
 
 /* ---------- Header (ฉีดจาก app.js ทุกหน้า) ---------- */
 .kk-header {
-    background: linear-gradient(180deg, var(--dora-blue) 0%, #0090CC 100%);
-    color: #fff;
+    background: linear-gradient(180deg, var(--brown) 0%, var(--brown-deep) 100%);
+    color: #FBF6E4;
     padding: 10px 16px;
     display: flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.10);
+    box-shadow: 0 2px 8px rgba(90,60,25,.18);
     position: sticky;
     top: 0;
     z-index: 40;
@@ -122,20 +139,20 @@ main { max-width: 720px; margin: 0 auto; padding: 16px 16px 40px; }
 
 /* ---------- Bottom tab bar (มือถือ) ---------- */
 .tabbar {
-    position: fixed; bottom: 0; left: 0; right: 0; height: 62px;
-    background: var(--card); border-top: 2px solid var(--line);
+    position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+    background: linear-gradient(180deg, var(--brown) 0%, var(--brown-deep) 100%);
     display: flex; z-index: 50;
     padding-bottom: env(safe-area-inset-bottom);
-    box-shadow: 0 -2px 12px rgba(59,47,47,.06);
+    box-shadow: 0 -3px 12px rgba(90,60,25,.22);
 }
 .tab {
     flex: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; gap: 1px; font-size: 11px; color: var(--ink-soft);
-    text-decoration: none; min-height: 48px;
+    justify-content: center; gap: 2px; font-size: 11px; color: rgba(251,246,228,.62);
+    text-decoration: none; min-height: 48px; font-weight: 600;
 }
 .tab .t-ico { display: flex; transition: transform .15s; }
-.tab .t-ico .icon { width: 21px; height: 21px; }
-.tab.active { color: var(--dora-blue); font-weight: 700; }
+.tab .t-ico .icon { width: 22px; height: 22px; }
+.tab.active { color: #FBF6E4; font-weight: 700; }
 .tab.active .t-ico { transform: translateY(-2px) scale(1.12); }
 
 @media (min-width: 720px) {
@@ -149,14 +166,14 @@ main { max-width: 720px; margin: 0 auto; padding: 16px 16px 40px; }
 
 /* ---------- ปุ่ม 3D ---------- */
 button, .btn {
-    font-family: 'Itim', sans-serif; font-size: 15px;
+    font-family: 'Baloo 2', 'Mali', sans-serif; font-weight: 700; font-size: 15px;
     border: 0; border-radius: var(--r-btn); cursor: pointer;
     padding: 12px 20px; min-height: 46px;
-    background: var(--dora-blue); color: #fff;
-    box-shadow: 0 4px 0 var(--dora-deep);
+    background: var(--green); color: #FBF6E4;
+    box-shadow: 0 4px 0 var(--green-lip), inset 0 2px 0 rgba(255,255,255,.28);
     transition: transform .06s, box-shadow .06s, opacity .15s;
 }
-button:active, .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--dora-deep); }
+button:active, .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--green-lip); }
 button:disabled { opacity: .45; cursor: default; transform: none; }
 
 button.gold, .btn.gold {
@@ -197,129 +214,114 @@ button.big { font-size: 17px; padding: 15px 24px; width: 100%; min-height: 54px;
 .section-label:first-child { margin-top: 0; }
 
 /* ============================================================
-   Home v3 "Cozy" — การ์ดนุ่ม อบอุ่น อ่านง่าย วาด CSS ล้วน (ไม่มี raster)
+   Home v4 "Farm Cozy" — พอร์ตจากดีไซน์ KepKham Cozy standalone
+   ครีมกระดาษ · หมึกน้ำตาล · การ์ด inset-ring · ปุ่มเขียวเก็บเกี่ยว
    ============================================================ */
-:root { --goal-track: #EDE0C4; --goal-fill: #00A0DE; }
-:root[data-theme="dark"] { --goal-track: #4A3B26; --goal-fill: #3FC3E8; }
 
-/* ---------- Hero card ---------- */
+/* ---------- Harvest card (hero) ---------- */
 .hero {
-    position: relative; overflow: hidden;
-    background: var(--card);
-    border: 2px solid var(--line);
-    border-radius: 22px;
-    padding: 18px 18px 16px;
-    margin-bottom: 18px;
-    box-shadow: var(--shadow-card);
+    position: relative;
+    background: var(--panel);
+    border: 3px solid var(--gold-deep);
+    border-radius: 16px;
+    padding: 16px 16px 14px;
+    margin-bottom: 16px;
+    box-shadow: var(--ring-sh), var(--shadow-card);
 }
-.hero::before {   /* แสงอุ่นบางๆ ด้านบน ให้มีชีวิต ไม่แบนราชการ */
-    content: ""; position: absolute; inset: 0 0 auto 0; height: 70px;
-    background: linear-gradient(180deg, #FFF4DD 0%, rgba(255,244,221,0) 100%);
-    pointer-events: none;
-}
-:root[data-theme="dark"] .hero::before {
-    background: linear-gradient(180deg, rgba(243,185,63,.10) 0%, rgba(0,0,0,0) 100%);
-}
-.hero > * { position: relative; }
-
-.hero-mascot {
-    position: absolute; top: 6px; right: 10px; width: 72px; height: 72px; z-index: 1;
-    animation: mascotBob 3.5s ease-in-out infinite;
-}
-@keyframes mascotBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-
 .hero .greet {
-    font-family: 'Baloo 2', 'Itim', sans-serif; font-weight: 700;
+    font-family: 'Baloo 2', 'Mali', sans-serif; font-weight: 700;
     font-size: 18px; line-height: 1.35; color: var(--ink);
-    margin: 4px 66px 14px 2px;
+    margin: 2px 2px 12px;
 }
-
-/* สถิติ = ชิพคู่ (สตรีค + เป้าวันนี้) */
-.hero-stats { display: flex; gap: 10px; margin-bottom: 14px; }
-.stat-chip {
-    flex: 1; display: flex; align-items: center; gap: 10px;
-    background: var(--cream); border: 1.5px solid var(--line);
-    border-radius: 16px; padding: 10px 12px; min-width: 0;
+.harvest-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.harvest-goal {
+    flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px;
+    background: var(--card); border-radius: 13px; padding: 9px 12px;
+    box-shadow: var(--ring-sh);
 }
-.stat-chip .sc-ico { display: inline-flex; color: #E4472B; }
-.stat-chip .sc-ico svg { width: 26px; height: 26px; }
-.stat-streak.flame-off .sc-ico { color: var(--ink-soft); }
-.stat-streak.flame-goal .sc-ico { color: var(--bell-deep); }
-.sc-body { min-width: 0; }
-.sc-num { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 24px; line-height: 1; color: var(--ink); }
-.sc-den { font-size: 15px; color: var(--ink-soft); }
-.sc-lbl { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
-.stat-goal .goal-ring { flex-shrink: 0; }
+.hg-basket { font-size: 28px; flex-shrink: 0; filter: drop-shadow(0 1px 1px rgba(0,0,0,.12)); }
+.hg-txt { min-width: 0; flex: 1; }
+.hg-num { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 15px; color: var(--ink); }
+.hg-sub { font-size: 12px; color: var(--ink-soft); margin-top: 1px; }
+.hg-bar { height: 6px; background: var(--line); border-radius: 99px; margin-top: 7px; overflow: hidden; }
+.hg-bar > div { height: 100%; background: linear-gradient(90deg, var(--green), var(--green-deep)); border-radius: 99px; transition: width .5s ease; }
 
-/* ---------- ปุ่มหลัก เด้งกดได้ (ริมล่างสไตล์ Duolingo) ---------- */
+.streak-chip {
+    flex-shrink: 0; display: flex; align-items: center; gap: 5px;
+    background: var(--card); border-radius: 13px; padding: 10px 13px;
+    box-shadow: var(--ring-sh); color: var(--ink);
+}
+.streak-chip .sc-ico { display: inline-flex; color: #E4472B; }
+.streak-chip .sc-ico svg { width: 22px; height: 22px; }
+.streak-chip b { font-family: 'Baloo 2', sans-serif; font-size: 22px; line-height: 1; }
+.streak-chip .sc-u { font-size: 12px; color: var(--ink-soft); }
+.streak-chip.flame-off .sc-ico { color: var(--ink-soft); }
+.streak-chip.flame-goal .sc-ico { color: var(--gold-deep); }
+
+/* ---------- ปุ่มเขียวเก็บเกี่ยว (ริมล่าง + ไฮไลต์บน) ---------- */
 .btn-primary {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    width: 100%; border: 0; border-radius: 16px; cursor: pointer;
-    background: var(--dora-blue); color: #fff;
-    font-family: 'Baloo 2', 'Itim', sans-serif; font-weight: 700;
-    box-shadow: 0 4px 0 var(--dora-deep);
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    width: 100%; border: 0; border-radius: 15px; cursor: pointer;
+    background: linear-gradient(180deg, var(--green) 0%, var(--green-deep) 100%);
+    color: #FBF6E4; font-family: 'Baloo 2', 'Mali', sans-serif; font-weight: 800;
+    box-shadow: 0 5px 0 var(--green-lip), inset 0 2px 0 rgba(255,255,255,.28);
     transition: transform .07s, box-shadow .07s;
 }
-.btn-primary.big { font-size: 18px; padding: 15px 20px; min-height: 56px; }
-.btn-primary:active { transform: translateY(4px); box-shadow: 0 0 0 var(--dora-deep); }
+.btn-primary.big { font-size: 17px; padding: 15px 20px; min-height: 56px; }
+.btn-primary:active { transform: translateY(5px); box-shadow: 0 0 0 var(--green-lip), inset 0 2px 0 rgba(255,255,255,.28); }
 .btn-primary .pill-ic svg { width: 20px; height: 20px; }
 .btn-cta { margin-top: 2px; }
-.cta-sub { text-align: center; font-size: 13px; color: var(--ink-soft); font-weight: 500; margin: 9px 0 0; }
+.cta-sub { text-align: center; font-size: 12.5px; color: var(--ink-soft); margin: 10px 0 0; }
 
 .btn-ghost {
     display: block; width: 100%; text-align: center; margin-top: 8px;
     background: none; border: 0; box-shadow: none; cursor: pointer;
-    color: var(--dora-deep); font-size: 14px; font-weight: 700; padding: 8px; min-height: 0;
+    color: var(--gold-deep); font-size: 13.5px; font-weight: 700; padding: 6px; min-height: 0;
 }
 .btn-ghost:active { transform: none; box-shadow: none; }
 
 .repair-btn {
     display: flex; align-items: center; justify-content: center; gap: 6px;
     width: 100%; margin-top: 10px; border: 0; border-radius: 14px;
-    background: var(--bell-gold); color: #4A3200; font-weight: 700; font-size: 13.5px;
-    padding: 11px 14px; box-shadow: 0 3px 0 var(--bell-deep); cursor: pointer;
+    background: var(--gold); color: #4A3200; font-weight: 700; font-size: 13.5px;
+    padding: 11px 14px; box-shadow: 0 3px 0 var(--gold-deep); cursor: pointer;
 }
-.repair-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--bell-deep); }
+.repair-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--gold-deep); }
 .repair-btn .pill-ic svg { width: 16px; height: 16px; }
 
-/* ---------- Zone path ---------- */
+/* ---------- Zone path (ชิพระดับ อุ่น) ---------- */
 .zone-path { display: flex; gap: 10px; margin-bottom: 18px; }
 .zone-chip {
     flex: 1; min-width: 0;
-    background: var(--card); border: 1.5px solid var(--line);
-    border-radius: 16px; padding: 11px 13px; box-shadow: var(--shadow-card);
-    transition: border-color .15s, box-shadow .15s;
+    background: var(--card); border-radius: 14px; padding: 11px 13px;
+    box-shadow: var(--ring-sh); transition: box-shadow .15s;
 }
-.zone-chip.current { border-color: var(--bell-gold); box-shadow: 0 0 0 3px rgba(243,185,63,.22), var(--shadow-card); }
-.zone-chip.done { background: #F2F9EE; border-color: #CDE7BC; }
-:root[data-theme="dark"] .zone-chip.done { background: #243219; border-color: #3B5A26; }
+.zone-chip.current { box-shadow: var(--ring-sh), 0 0 0 2px var(--gold-deep); }
+.zone-chip.done .z-name { color: var(--green-deep); }
 .zone-chip .z-name { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14px; color: var(--ink); }
 .zone-chip .z-pct { font-size: 11.5px; color: var(--ink-soft); margin-top: 1px; }
 .zone-chip .z-bar { height: 6px; background: var(--line); border-radius: 99px; margin-top: 8px; overflow: hidden; }
-.zone-chip .z-bar > div { height: 100%; background: var(--dora-blue); border-radius: 99px; transition: width .5s ease; }
-.zone-chip.done .z-bar > div { background: var(--green); }
+.zone-chip .z-bar > div { height: 100%; background: linear-gradient(90deg, var(--green), var(--green-deep)); border-radius: 99px; transition: width .5s ease; }
 
-/* ---------- Unit cards ---------- */
+/* ---------- Unit cards (การ์ด inset-ring) ---------- */
 .unit-card {
     display: flex; align-items: center; gap: 13px; cursor: pointer;
-    background: var(--card); border: 1.5px solid var(--line);
-    border-radius: 16px; padding: 12px 14px; margin-bottom: 10px;
-    box-shadow: var(--shadow-card);
-    transition: transform .12s, box-shadow .12s, border-color .12s;
+    background: var(--card); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px;
+    box-shadow: var(--ring-sh), var(--shadow-card);
+    transition: transform .12s, box-shadow .12s;
 }
-.unit-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-pop); }
+.unit-card:hover { transform: translateY(-2px); box-shadow: var(--ring-sh), var(--shadow-pop); }
 .unit-card:active { transform: translateY(0); }
-.unit-card.pinned { border-color: var(--bell-gold); background: #FFFBF0; }
-:root[data-theme="dark"] .unit-card.pinned { background: #332a16; }
+.unit-card.pinned { box-shadow: inset 0 0 0 2px var(--gold), var(--shadow-card); }
 .unit-card.complete { opacity: .72; }
 
-/* ไอคอนบท = ชิพสี่เหลี่ยมมนพาสเทล สไตล์เดียวหมด */
+/* ไอคอนบท = ชิพสี่เหลี่ยมมนอุ่น สไตล์เดียวหมด */
 .unit-icon {
-    width: 48px; height: 48px; flex-shrink: 0; border-radius: 14px;
+    width: 48px; height: 48px; flex-shrink: 0; border-radius: 13px;
     display: flex; align-items: center; justify-content: center; font-size: 24px;
-    background: var(--slot-bg); border: 1.5px solid var(--slot-border);
+    background: var(--panel); box-shadow: var(--ring-sh);
 }
-.unit-card.pinned .unit-icon { background: #FFF1CF; border-color: var(--bell-gold); }
+.unit-card.pinned .unit-icon { background: #FBEFD0; }
 .unit-title { flex: 1; min-width: 0; }
 .unit-title .name { font-size: 16px; font-weight: 600; display: block; margin-bottom: 2px; color: var(--ink); }
 .unit-title .meta { font-size: 12.5px; color: var(--ink-soft); }
