@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Itim&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
 <script>try{var m=localStorage.getItem("kk_theme")||"auto";var d=m==="dark"||(m==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}</script>
-<link rel="stylesheet" href="static/style.css?v=20260715-222122">
+<link rel="stylesheet" href="static/style.css?v=20260720-011856">
 </head>
 <body>
 <main>
@@ -27,8 +27,8 @@
     <div id="list"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
 </main>
 <script>window.KK_STATIC=true;</script>
-<script src="static/kk-local.js?v=20260715-222122"></script>
-<script src="static/app.js?v=20260715-222122"></script>
+<script src="static/kk-local.js?v=20260720-011856"></script>
+<script src="static/app.js?v=20260720-011856"></script>
 <script>
 const ICONS = {
     bar_hospitality: "🍻", knd_essence: "🎓",
@@ -216,7 +216,17 @@ async function main() {
     const knd = units.filter(u => !u.pinned && u.pack_type === "knd");
     const trend = units.filter(u => !u.pinned && u.pack_type === "trend");
 
-    let html = "";
+    let html = `
+        <div class="practice-row">
+            <a class="practice-btn" href="dictation.html?mix=1">
+                <span class="pb-ico">✍️</span>
+                <span><span class="pb-name">ฟังแล้วเขียน</span><span class="pb-sub"> · ฝึกหู</span></span>
+            </a>
+            <a class="practice-btn soon">
+                <span class="pb-ico">🎙️</span>
+                <span><span class="pb-name">พูดตาม</span><span class="pb-sub"> · เร็ว ๆ นี้</span></span>
+            </a>
+        </div>`;
     if (pinned.length) html += section("📌 ปักหมุด — ใช้ได้ทุกวัน", pinned);
     if (core.length) {
         const byLevel = {};

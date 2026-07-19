@@ -655,3 +655,57 @@ details.zone-fold[open] > summary .fold-arrow { transform: rotate(90deg); }
         scroll-behavior: auto !important;
     }
 }
+
+/* ============================================================
+   Dictation (ฟังแล้วเขียน) — โหมดแบบ Parroto
+   ============================================================ */
+.dict-card { text-align: center; padding: 22px 18px 20px; }
+.dict-card .fc-meta { color: var(--muted); font-size: 12.5px; margin-bottom: 16px; }
+.dict-listen {
+    width: 92px; height: 92px; border-radius: 50%; margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 50% 40%, #A9D97A 0%, var(--green) 70%);
+    color: #FBF6E4; border: 0; cursor: pointer;
+    box-shadow: 0 5px 0 var(--green-lip), inset 0 2px 0 rgba(255,255,255,.3),
+                0 0 0 8px rgba(132,194,78,.16);
+    transition: transform .08s, box-shadow .08s;
+}
+.dict-listen .icon { width: 40px; height: 40px; }
+.dict-listen:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--green-lip), inset 0 2px 0 rgba(255,255,255,.3); }
+.dict-hint { font-size: 13.5px; color: var(--muted); margin: 0 0 12px; }
+.dict-card textarea {
+    width: 100%; font-family: 'Mali', 'Itim', sans-serif; font-size: 16px;
+    border: 2.5px solid var(--gold); border-radius: 14px; padding: 12px 14px;
+    background: var(--panel); color: var(--ink); box-shadow: var(--ring-sh);
+    resize: none; line-height: 1.5;
+}
+.dict-card textarea:focus { outline: none; border-color: var(--gold-deep); }
+.dict-card textarea:disabled { opacity: .8; }
+#dict-result { margin-top: 14px; }
+.dict-score { font-size: 15px; color: var(--ink); margin-bottom: 8px; }
+.dict-answer {
+    font-size: 18px; line-height: 1.8; background: var(--card); border-radius: 13px;
+    padding: 12px 14px; box-shadow: var(--ring-sh); margin-bottom: 8px;
+}
+.dw { padding: 1px 3px; border-radius: 5px; }
+.dw.ok { color: var(--green-deep); font-weight: 700; }
+.dw.miss { color: var(--dora-red); text-decoration: underline wavy var(--dora-red); }
+.dict-th { font-family: 'Mali', sans-serif; font-size: 15px; color: var(--ink-soft); margin-bottom: 4px; }
+
+/* ปุ่มเข้าโหมดฝึกบนหน้าแรก */
+.practice-row { display: flex; gap: 10px; margin: 2px 0 18px; }
+.practice-btn {
+    flex: 1; display: flex; align-items: center; gap: 10px; cursor: pointer;
+    background: var(--card); border-radius: 14px; padding: 12px 13px;
+    box-shadow: var(--ring-sh); text-decoration: none; color: var(--ink);
+    transition: transform .12s;
+}
+.practice-btn:active { transform: translateY(1px); }
+.practice-btn .pb-ico {
+    width: 40px; height: 40px; flex-shrink: 0; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center; font-size: 21px;
+    background: var(--tile); box-shadow: var(--ring-sh);
+}
+.practice-btn .pb-name { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14.5px; }
+.practice-btn .pb-sub { font-size: 11.5px; color: var(--muted); }
+.practice-btn.soon { opacity: .6; }

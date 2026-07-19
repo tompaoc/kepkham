@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เก็บคำ — ฟังแล้วเขียน</title>
+<meta name="theme-color" content="#946237">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="static/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Itim&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<script>try{var m=localStorage.getItem("kk_theme")||"auto";var d=m==="dark"||(m==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}</script>
+<link rel="stylesheet" href="static/style.css?v=20260720-011856">
+</head>
+<body>
+<main>
+    <div id="dict-area"><div class="skeleton" style="height:320px;"></div></div>
+</main>
+<script>window.KK_STATIC=true;</script>
+<script src="static/kk-local.js?v=20260720-011856"></script>
+<script src="static/app.js?v=20260720-011856"></script>
+<script>
+let queue = [];
+let idx = 0;
+let session = { done: 0, scoreSum: 0 };
+let checked = false;
+const params = new URLSearchParams(location.search);
+const LIMIT = parseInt(params.get("limit")) || 12;
+
+/* ---- เทียบคำต่อคำด้วย LCS: คำไหนตรง/ขาด ---- */
+function normWord(w) { return (w || "").toLowerCase().replace(/[^a-z0-9']/g, ""); }
+function alignWords(target, typed) {
+    const disp = (target || "").trim().split(/\s+/).filter(Boolean);
+    const T = disp.map(normWord);
+    const A = (typed || "").trim().split(/\s+/).map(normWord).filter(Boolean);
+    const n = T.length, m = A.length;
+    const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+    for (let i = 1; i <= n; i++)
+        for (let j = 1; j <= m; j++)
+            dp[i][j] = T[i - 1] === A[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+    const matched = new Array(n).fill(false);
+    let i = n, j = m;
+    while (i > 0 && j > 0) {
+        if (T[i - 1] === A[j - 1]) { matched[i - 1] = true; i--; j--; }
+        else if (dp[i - 1][j] >= dp[i][j - 1]) i--; else j--;
+    }
+    const correct = matched.filter(Boolean).length;
+    const pct = T.length ? Math.round(correct / T.length * 100) : 0;
+    return { disp, matched, correct, total: T.length, pct };
+}
+
+function renderCard() {
+    const el = document.getElementById("dict-area");
+    if (idx >= queue.length) { finishSession(); return; }
+    checked = false;
+    const card = queue[idx];
+    const voice = voiceFor(card, card.unit_id);
+
+    el.innerHTML = `
+        <div class="progress-bar"><div style="width:${(idx / queue.length) * 100}%"></div></div>
+        <div class="card dict-card">
+            <div class="fc-meta">${idx + 1} / ${queue.length} · ${escapeHtml(card.unit_name || "")} · ✍️ ฟังแล้วเขียน</div>
+            <button class="dict-listen" id="listen-btn" title="ฟังอีกครั้ง">${icon("speaker")}</button>
+            <p class="dict-hint">แตะเพื่อฟังซ้ำ แล้วพิมพ์ประโยคที่ได้ยิน</p>
+            <div style="display:flex; gap:8px; justify-content:center; margin-bottom:14px;">
+                <button class="play-btn slow" data-say="${escapeHtml(card.text_en)}" data-voice="${voice}" data-rate="slow" title="ช้า">🐢</button>
+                <button class="play-btn" data-say="${escapeHtml(card.text_en)}" data-voice="${voice}" title="ปกติ">${icon("play")}</button>
+            </div>
+            <textarea id="dict-input" rows="2" placeholder="พิมพ์สิ่งที่ได้ยิน…" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+            <div id="dict-result"></div>
+            <button class="btn-primary big" id="check-btn" style="margin-top:14px;">${icon("check", "pill-ic")} ตรวจคำตอบ</button>
+        </div>`;
+
+    const input = document.getElementById("dict-input");
+    document.getElementById("listen-btn").onclick = () => playAudio(card.text_en, voice);
+    document.getElementById("check-btn").onclick = () => doCheck(card);
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); doCheck(card); }
+    });
+    input.focus();
+    playAudio(card.text_en, voice);        // เล่นให้ฟังทันทีหนึ่งครั้ง
+    prefetchNext();
+}
+
+function doCheck(card) {
+    if (!checked) {
+        const typed = document.getElementById("dict-input").value;
+        const r = alignWords(card.text_en, typed);
+        const words = r.disp.map((w, i) =>
+            `<span class="dw ${r.matched[i] ? "ok" : "miss"}">${escapeHtml(w)}</span>`).join(" ");
+        const face = r.pct >= 90 ? "🌟 เกือบเป๊ะ!" : r.pct >= 60 ? "👍 ดีขึ้นเยอะ" : "🌱 ลองอีกที ค่อยๆ ฟัง";
+        document.getElementById("dict-result").innerHTML = `
+            <div class="dict-score">ได้ ${r.correct}/${r.total} คำ · <b style="color:${r.pct >= 60 ? "var(--green-deep)" : "var(--dora-red)"}">${r.pct}%</b> — ${face}</div>
+            <div class="dict-answer">${words}</div>
+            <div class="dict-th">${escapeHtml(card.text_th || "")}</div>
+            ${card.note_th ? `<div class="fc-note">💡 ${escapeHtml(card.note_th)}</div>` : ""}
+            ${card.example_en ? `<div class="fc-example">"${escapeHtml(card.example_en)}"</div>` : ""}`;
+        document.getElementById("dict-input").disabled = true;
+        const btn = document.getElementById("check-btn");
+        btn.innerHTML = `${icon("play", "pill-ic")} ถัดไป`;
+        checked = true;
+        session.done += 1;
+        session.scoreSum += r.pct;
+        if (r.pct >= 60) sfx.correct(); else sfx.wrong();
+        playAudio(card.text_en, voiceFor(card, card.unit_id));
+    } else {
+        idx += 1;
+        renderCard();
+    }
+}
+
+function prefetchNext() {
+    const nxt = queue[idx + 1];
+    if (!nxt) return;
+    fetch(`/api/tts?text=${encodeURIComponent(nxt.text_en)}&voice=${voiceFor(nxt, nxt.unit_id)}&rate=normal`).catch(() => {});
+}
+
+async function finishSession() {
+    const el = document.getElementById("dict-area");
+    if (session.done === 0) {
+        el.innerHTML = `<div class="empty-state"><div style="font-size:44px;">✍️</div>
+            <p style="font-size:17px; margin:10px 0 4px;">ยังไม่มีคำให้ฝึกฟังตอนนี้</p>
+            <button class="btn-primary" onclick="location.href='index.html'" style="max-width:220px; margin:10px auto 0;">กลับหน้าหลัก</button></div>`;
+        return;
+    }
+    const avg = Math.round(session.scoreSum / session.done);
+    el.innerHTML = `<div class="card" style="text-align:center; padding:36px 20px;">
+        <div style="font-size:50px;">🎧</div>
+        <h2 style="margin:8px 0 4px;">จบรอบฟัง-เขียน!</h2>
+        <p style="margin:4px 0;"><span class="num" style="font-size:26px;">${session.done}</span> ประโยค · แม่นเฉลี่ย <span class="num" style="font-size:26px; color:var(--green-deep);">${avg}%</span></p>
+        <p id="stamp-line" style="font-size:13.5px; color:var(--ink-soft); min-height:20px;"></p>
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
+            <button class="secondary" onclick="location.href='index.html'">กลับหน้าหลัก</button>
+            <button class="btn-primary" style="max-width:150px;" onclick="location.reload()">ต่ออีกรอบ</button>
+        </div>
+    </div>`;
+    sfx.fanfare();
+    confetti(40);
+    try {
+        const res = await apiPost("/api/earn", { stamp_source: "review_session" });
+        const stats = await refreshPills();
+        const lines = [];
+        if (res.stamp_awarded) lines.push("ได้แสตมป์ +1 📮");
+        document.getElementById("stamp-line").textContent = lines.join(" · ");
+        celebrateUnlocks(res.newly_unlocked);
+    } catch (e) {}
+}
+
+initChrome("dictation");
+safeLoad("dict-area", async () => {
+    queue = await apiGet(`/api/today?limit=${LIMIT}`);
+    queue = (queue || []).filter(c => c.text_en && c.text_en.trim());
+    idx = 0;
+    renderCard();
+});
+</script>
+</body>
+</html>
