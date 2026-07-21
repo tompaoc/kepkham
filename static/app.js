@@ -2,8 +2,15 @@
 const API = "";
 
 /* โหมดออฟไลน์ (build_static.py ตั้ง window.KK_STATIC=true ให้): ไม่มีเซิร์ฟเวอร์
-   ทุก /api/* ถูกตอบโดย kk-local.js ในเครื่อง — หน้าเว็บไม่ต้องรู้เรื่องเลย */
-const KK_READY = window.KK_STATIC ? KK.init() : Promise.resolve();
+   ทุก /api/* ถูกตอบโดย kk-local.js ในเครื่อง — หน้าเว็บไม่ต้องรู้เรื่องเลย
+   กันค้าง: ถ้า kk-local โหลดไม่ได้ (KK undefined) หรือ init แขวน >12s
+   → ให้ reject แทนที่จะค้างทั้งแอป (safeLoad จะโชว์ปุ่มลองใหม่) */
+const KK_READY = (window.KK_STATIC && window.KK)
+    ? Promise.race([
+          Promise.resolve().then(() => KK.init()),
+          new Promise((_, rej) => setTimeout(() => rej(new Error("kk init timeout")), 12000)),
+      ])
+    : Promise.resolve();
 
 async function apiGet(path) {
     if (window.KK_STATIC) { await KK_READY; return KK.get(path); }

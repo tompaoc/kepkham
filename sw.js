@@ -7,7 +7,7 @@
 
    เปลือกใช้ stale-while-revalidate: เปิดแอปได้ทันทีจากเครื่อง (ออฟไลน์ก็เปิดได้)
    แล้วแอบโหลดของใหม่ไว้เบื้องหลัง → เปิดรอบหน้าได้เวอร์ชันใหม่เอง */
-const BUILD = "20260720-011856";                 // build_static.py แทนค่าให้ตอน build
+const BUILD = "20260721-202037";                 // build_static.py แทนค่าให้ตอน build
 const SHELL = `kk-shell-${BUILD}`;
 const AUDIO = "kk-audio";                  // ชื่อคงที่ — kk-local.js ก็เขียนลงก้อนนี้
 
@@ -58,18 +58,36 @@ self.addEventListener("fetch", (e) => {
 
     // /api/* (โหมดเซิร์ฟเวอร์เท่านั้น — โหมดออฟไลน์ตอบเองในหน้า): ของสดเสมอ
     if (url.pathname.startsWith("/api/")) {
-        e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+        e.respondWith(fetch(e.request).catch(() => caches.match(e.request, { ignoreSearch: true })));
         return;
     }
 
-    // เปลือกแอป: ตอบจากเครื่องทันที + แอบอัปเดตไว้ใช้รอบหน้า
+    // หน้าเว็บ (navigate): เอาของสดจากเน็ตก่อนเสมอ — กันเปลือกเก่าพังค้างใน PWA
+    // ออฟไลน์ค่อย fallback cache (ignoreSearch เผื่อ ?v ไม่ตรง) → สุดท้าย index.html
+    if (e.request.mode === "navigate") {
+        e.respondWith(
+            fetch(e.request)
+                .then(res => {
+                    if (res.ok && res.type === "basic") caches.open(SHELL).then(c => c.put(e.request, res.clone()));
+                    return res;
+                })
+                .catch(() => caches.open(SHELL).then(c =>
+                    c.match(e.request, { ignoreSearch: true }).then(h => h || c.match("index.html", { ignoreSearch: true }))
+                ))
+        );
+        return;
+    }
+
+    // asset เปลือก (css/js/json/รูป): cache-first ตรงตัว → เน็ต → สุดท้าย ignoreSearch
+    // (สำคัญ: ?v=build ต้อง match precache แบบไม่มี query ได้ ไม่งั้นออฟไลน์ JS โหลดไม่ขึ้น = ค้าง)
     e.respondWith(
-        caches.open(SHELL).then(c => c.match(e.request).then(hit => {
-            const fresh = fetch(e.request).then(res => {
-                if (res.ok && res.type === "basic") c.put(e.request, res.clone());
-                return res;
-            }).catch(() => hit);
-            return hit || fresh;
-        }))
+        caches.open(SHELL).then(c =>
+            c.match(e.request).then(hit =>
+                hit || fetch(e.request).then(res => {
+                    if (res.ok && res.type === "basic") c.put(e.request, res.clone());
+                    return res;
+                }).catch(() => c.match(e.request, { ignoreSearch: true }))
+            )
+        )
     );
 });
