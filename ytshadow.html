@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เก็บคำ — พูดตามคลิป</title>
+<meta name="theme-color" content="#946237">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="static/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Itim&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<script>try{var m=localStorage.getItem("kk_theme")||"auto";var d=m==="dark"||(m==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}</script>
+<link rel="stylesheet" href="static/style.css?v=20260721-225119">
+</head>
+<body>
+<main>
+    <div class="yt-intro">
+        <div class="zone-pill">🎬 พูดตามคลิป YouTube</div>
+        <p class="yt-hint">วางลิงก์คลิปที่อยากฝึก (หนัง/การ์ตูน/สัมภาษณ์/สอนภาษา) — ระบบจะเปิดซับให้ แล้วเล่นซ้ำทีละท่อนให้พูดตาม + อัดเทียบเสียง
+            <br><small>ใช้ตอนออนไลน์ · เล่นผ่าน YouTube โดยตรง (ไม่ได้ดาวน์โหลด)</small></p>
+        <div class="yt-load">
+            <input type="text" id="yt-url" class="search-box" style="border-radius:14px;padding-left:14px;"
+                   placeholder="วางลิงก์ เช่น https://youtu.be/xxxx" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <button class="btn-primary" id="yt-go" style="max-width:120px;">เปิด</button>
+        </div>
+        <div class="yt-examples" id="yt-examples"></div>
+    </div>
+
+    <div id="yt-stage" style="display:none;">
+        <div class="yt-frame"><div id="yt-player"></div></div>
+        <div id="yt-msg" class="yt-msg"></div>
+
+        <div class="yt-controls">
+            <button class="cmp-btn" id="yt-back">⏪ −3 วิ</button>
+            <button class="cmp-btn" id="yt-replay">🔁 เล่นซ้ำท่อนนี้</button>
+            <button class="cmp-btn" id="yt-fwd">+3 วิ ⏩</button>
+        </div>
+        <p class="yt-tip">เล่นวิดีโอไปเรื่อยๆ พอเจอประโยคที่อยากฝึก กด <b>🔁 เล่นซ้ำท่อนนี้</b> (ย้อน ~4 วิ) แล้วค่อยอัดพูดตาม</p>
+
+        <button class="shadow-rec" id="rec-btn"><span class="rec-dot"></span><span id="rec-label">อัดเสียงเรา</span></button>
+        <div class="shadow-compare" id="compare" style="display:none;">
+            <button class="cmp-btn" id="cmp-model">🔁 ท่อนต้นฉบับ</button>
+            <button class="cmp-btn me" id="cmp-me">🎤 เสียงเรา</button>
+        </div>
+    </div>
+</main>
+<script>window.KK_STATIC=true;</script>
+<script src="static/kk-local.js?v=20260721-225119"></script>
+<script src="static/app.js?v=20260721-225119"></script>
+<script>
+/* ---- YouTube IFrame API ---- */
+let player = null, apiReady = false, pendingId = null, chunkTimer = null;
+let lastChunk = null;   // {start, dur} ท่อนที่เพิ่งเล่นซ้ำ (ไว้กด "ต้นฉบับ" เทียบ)
+
+window.onYouTubeIframeAPIReady = () => { apiReady = true; if (pendingId) createPlayer(pendingId); };
+
+function ytId(url) {
+    if (!url) return null;
+    url = url.trim();
+    const m = url.match(/(?:youtu\.be\/|v=|\/embed\/|\/shorts\/|\/live\/)([A-Za-z0-9_-]{11})/);
+    if (m) return m[1];
+    if (/^[A-Za-z0-9_-]{11}$/.test(url)) return url;   // วาง id ตรงๆ ก็ได้
+    return null;
+}
+
+function createPlayer(id) {
+    document.querySelector(".yt-intro").style.display = "none";
+    document.getElementById("yt-stage").style.display = "block";
+    if (player) { try { player.loadVideoById(id); } catch (e) {} return; }
+    player = new YT.Player("yt-player", {
+        videoId: id,
+        playerVars: { cc_load_policy: 1, cc_lang_pref: "en", hl: "en", modestbranding: 1, rel: 0, playsinline: 1 },
+        events: { onReady: () => { document.getElementById("yt-msg").textContent = "แตะเล่นวิดีโอได้เลย ▶︎"; } },
+    });
+}
+
+function loadUrl(url) {
+    const id = ytId(url);
+    if (!id) { alert("ลิงก์ไม่ถูกต้อง — วางลิงก์ YouTube เต็มๆ นะ"); return; }
+    if (apiReady) createPlayer(id); else pendingId = id;
+}
+
+/* เล่นท่อนสั้นๆ แล้วหยุด (ไว้ฟังซ้ำก่อนพูดตาม) */
+function playChunk(start, dur) {
+    if (!player || !player.seekTo) return;
+    clearTimeout(chunkTimer);
+    start = Math.max(0, start);
+    lastChunk = { start, dur };
+    player.seekTo(start, true);
+    player.playVideo();
+    chunkTimer = setTimeout(() => { try { player.pauseVideo(); } catch (e) {} }, dur * 1000);
+}
+function replayLast() {
+    if (lastChunk) playChunk(lastChunk.start, lastChunk.dur);
+    else if (player && player.getCurrentTime) playChunk(player.getCurrentTime() - 4, 4);
+}
+function nudge(sec) {
+    if (player && player.getCurrentTime) { const t = player.getCurrentTime(); player.seekTo(Math.max(0, t + sec), true); }
+}
+
+/* ---- อัดเสียง (เหมือนโหมดพูดตาม) ---- */
+let mediaStream = null, recorder = null, chunks = [], myUrl = null, myAudio = null, recording = false;
+const REC_SUPPORTED = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+function pickMime() {
+    for (const m of ["audio/mp4", "audio/webm", "audio/webm;codecs=opus"])
+        if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+    return "";
+}
+async function startRec() {
+    try { if (!mediaStream) mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch (e) { document.getElementById("rec-label").textContent = "ไม่ได้สิทธิ์ไมค์ 🙏"; return; }
+    try { player && player.pauseVideo && player.pauseVideo(); } catch (e) {}
+    chunks = [];
+    const mt = pickMime();
+    try { recorder = new MediaRecorder(mediaStream, mt ? { mimeType: mt } : undefined); }
+    catch (e) { recorder = new MediaRecorder(mediaStream); }
+    recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+    recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: recorder.mimeType || "audio/mp4" });
+        if (myUrl) URL.revokeObjectURL(myUrl);
+        myUrl = URL.createObjectURL(blob);
+        document.getElementById("compare").style.display = "flex";
+        myAudio = new Audio(myUrl); myAudio.play().catch(() => {});
+    };
+    recorder.start(); recording = true;
+    const b = document.getElementById("rec-btn"); b.classList.add("on");
+    document.getElementById("rec-label").textContent = "กำลังอัด… แตะเพื่อหยุด";
+}
+function stopRec() {
+    if (recorder && recorder.state !== "inactive") recorder.stop();
+    recording = false;
+    const b = document.getElementById("rec-btn");
+    if (b) { b.classList.remove("on"); document.getElementById("rec-label").textContent = "อัดใหม่"; }
+}
+function releaseMic() { try { if (mediaStream) mediaStream.getTracks().forEach(t => t.stop()); } catch (e) {} mediaStream = null; }
+
+/* ---- wire up ---- */
+document.getElementById("yt-go").onclick = () => loadUrl(document.getElementById("yt-url").value);
+document.getElementById("yt-url").addEventListener("keydown", e => { if (e.key === "Enter") loadUrl(e.target.value); });
+document.getElementById("yt-back").onclick = () => nudge(-3);
+document.getElementById("yt-fwd").onclick = () => nudge(3);
+document.getElementById("yt-replay").onclick = () => replayLast();
+
+if (REC_SUPPORTED) {
+    document.getElementById("rec-btn").onclick = () => recording ? stopRec() : startRec();
+    document.getElementById("cmp-model").onclick = () => replayLast();
+    document.getElementById("cmp-me").onclick = () => { if (myUrl) { myAudio = new Audio(myUrl); myAudio.play().catch(() => {}); } };
+} else {
+    document.getElementById("rec-btn").outerHTML = `<div class="fc-note" style="margin-top:14px;">🎤 เบราว์เซอร์นี้อัดเสียงไม่ได้ — ฟังแล้วพูดตามออกเสียงเองได้เลย</div>`;
+}
+
+/* ตัวอย่างคลิป (แก้/วางเองได้) */
+const EXAMPLES = [
+    { t: "ตัวอย่าง: บทสนทนาในผับ (search)", q: "english pub conversation" },
+    { t: "ตัวอย่าง: สั่งเครื่องดื่มที่บาร์", q: "ordering drinks at a bar english" },
+];
+document.getElementById("yt-examples").innerHTML =
+    `<div class="yt-ex-title">ยังไม่มีลิงก์? ลองค้นใน YouTube แล้วก๊อปลิงก์มาวาง:</div>` +
+    EXAMPLES.map(e => `<a class="yt-ex" href="https://www.youtube.com/results?search_query=${encodeURIComponent(e.q)}" target="_blank" rel="noopener">🔎 ${e.t}</a>`).join("");
+
+window.addEventListener("pagehide", releaseMic);
+
+initChrome("ytshadow");
+
+/* โหลด YouTube API */
+(function () {
+    const s = document.createElement("script");
+    s.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(s);
+})();
+
+/* รับ ?v=<id> หรือ ?url= มาเปิดเลย */
+const p = new URLSearchParams(location.search);
+const pre = p.get("v") || p.get("url");
+if (pre) { document.getElementById("yt-url").value = pre; setTimeout(() => loadUrl(pre), 300); }
+</script>
+</body>
+</html>

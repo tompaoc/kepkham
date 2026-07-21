@@ -693,9 +693,9 @@ details.zone-fold[open] > summary .fold-arrow { transform: rotate(90deg); }
 .dict-th { font-family: 'Mali', sans-serif; font-size: 15px; color: var(--ink-soft); margin-bottom: 4px; }
 
 /* ปุ่มเข้าโหมดฝึกบนหน้าแรก */
-.practice-row { display: flex; gap: 10px; margin: 2px 0 18px; }
+.practice-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 2px 0 18px; }
 .practice-btn {
-    flex: 1; display: flex; align-items: center; gap: 10px; cursor: pointer;
+    flex: 1 1 30%; min-width: 100px; display: flex; align-items: center; gap: 10px; cursor: pointer;
     background: var(--card); border-radius: 14px; padding: 12px 13px;
     box-shadow: var(--ring-sh); text-decoration: none; color: var(--ink);
     transition: transform .12s;
@@ -753,3 +753,30 @@ details.zone-fold[open] > summary .fold-arrow { transform: rotate(90deg); }
 .rate-row .ra:active { transform: translateY(4px); box-shadow: 0 0 0 var(--green-lip); }
 .rate-row .ra.danger { background: #E4634A; box-shadow: 0 4px 0 #9E2C18, inset 0 2px 0 rgba(255,255,255,.22); }
 .rate-row .ra.green { background: var(--green-deep); box-shadow: 0 4px 0 var(--green-lip), inset 0 2px 0 rgba(255,255,255,.25); }
+
+/* ============================================================
+   YouTube Shadowing (พูดตามคลิป)
+   ============================================================ */
+.yt-intro { padding: 4px 2px; }
+.yt-hint { font-size: 14px; color: var(--ink-soft); line-height: 1.6; margin: 10px 2px 16px; }
+.yt-hint small { color: var(--muted); }
+.yt-load { display: flex; gap: 8px; align-items: stretch; margin-bottom: 14px; }
+.yt-load .search-box { flex: 1; }
+.yt-load .btn-primary { min-height: 44px; }
+.yt-ex-title { font-size: 12.5px; color: var(--muted); margin: 8px 0 8px; }
+.yt-ex {
+    display: inline-block; margin: 0 8px 8px 0; text-decoration: none;
+    background: var(--card); color: var(--ink); border-radius: 11px; padding: 9px 13px;
+    box-shadow: var(--ring-sh); font-size: 13.5px;
+}
+.yt-frame {
+    position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden;
+    background: #000; box-shadow: var(--ring-sh), var(--shadow-card); margin-bottom: 12px;
+}
+.yt-frame > div, .yt-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.yt-msg { text-align: center; font-size: 13px; color: var(--muted); min-height: 18px; margin-bottom: 10px; }
+.yt-controls { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
+.yt-controls .cmp-btn { flex: 1; max-width: 150px; }
+.yt-tip { text-align: center; font-size: 12.5px; color: var(--ink-soft); line-height: 1.6; margin: 6px 4px 16px; }
+#yt-stage .shadow-rec { display: flex; margin: 0 auto; }
+#yt-stage .shadow-compare { margin-top: 14px; }
