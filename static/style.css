@@ -709,3 +709,47 @@ details.zone-fold[open] > summary .fold-arrow { transform: rotate(90deg); }
 .practice-btn .pb-name { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14.5px; }
 .practice-btn .pb-sub { font-size: 11.5px; color: var(--muted); }
 .practice-btn.soon { opacity: .6; }
+
+/* ============================================================
+   Shadowing (พูดตาม) — อัดเสียง + เทียบ A/B แบบ Parroto
+   ============================================================ */
+.shadow-card { text-align: center; padding: 20px 18px; }
+.shadow-card .fc-meta { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+.shadow-en { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 22px; line-height: 1.35; color: var(--ink); margin: 4px 0 4px; }
+.shadow-th { font-family: 'Mali', sans-serif; font-size: 15px; color: var(--ink-soft); margin-bottom: 4px; }
+
+.shadow-rec {
+    display: inline-flex; align-items: center; gap: 9px; margin: 18px auto 0;
+    padding: 13px 24px; border: 0; border-radius: 999px; cursor: pointer;
+    background: linear-gradient(180deg, #E8664C 0%, #C93F28 100%); color: #FFF3EC;
+    font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 16px;
+    box-shadow: 0 5px 0 #9E2C18, inset 0 2px 0 rgba(255,255,255,.25);
+    transition: transform .07s, box-shadow .07s;
+}
+.shadow-rec:active { transform: translateY(4px); box-shadow: 0 1px 0 #9E2C18, inset 0 2px 0 rgba(255,255,255,.25); }
+.shadow-rec .rec-dot { width: 13px; height: 13px; border-radius: 50%; background: #FFF3EC; }
+.shadow-rec.on { background: linear-gradient(180deg, #D8402A 0%, #A62C18 100%); }
+.shadow-rec.on .rec-dot { animation: recPulse 1s ease-in-out infinite; }
+@keyframes recPulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+
+.shadow-compare { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+.cmp-btn {
+    flex: 1; max-width: 160px; display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--card); color: var(--ink); border: 0; border-radius: 13px; padding: 12px;
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14.5px;
+    box-shadow: var(--ring-sh); cursor: pointer;
+}
+.cmp-btn:active { transform: translateY(1px); }
+.cmp-btn.me { color: var(--green-deep); }
+
+.shadow-rate { margin-top: 18px; }
+.shadow-rate .rate-q { font-size: 14px; color: var(--ink-soft); margin: 0 0 10px; }
+.rate-row { display: flex; gap: 8px; justify-content: center; }
+.rate-row .ra {
+    flex: 1; max-width: 130px; border: 0; border-radius: 13px; padding: 13px 8px; cursor: pointer;
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14.5px; color: #FBF6E4;
+    background: var(--green); box-shadow: 0 4px 0 var(--green-lip), inset 0 2px 0 rgba(255,255,255,.25);
+}
+.rate-row .ra:active { transform: translateY(4px); box-shadow: 0 0 0 var(--green-lip); }
+.rate-row .ra.danger { background: #E4634A; box-shadow: 0 4px 0 #9E2C18, inset 0 2px 0 rgba(255,255,255,.22); }
+.rate-row .ra.green { background: var(--green-deep); box-shadow: 0 4px 0 var(--green-lip), inset 0 2px 0 rgba(255,255,255,.25); }
