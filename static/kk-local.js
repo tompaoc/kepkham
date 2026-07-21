@@ -40,25 +40,31 @@ const KK = (() => {
             rq.onsuccess = () => done(res, rq.result);
             rq.onerror = () => done(rej, rq.error);
             rq.onblocked = () => done(rej, new Error("idb blocked"));
-            setTimeout(() => done(rej, new Error("idb open timeout")), 3500);
+            setTimeout(() => done(rej, new Error("idb open timeout")), 2500);
         });
     }
+    /* iOS PWA: บางที transaction ก็แขวน (ไม่ยิง success/error) แม้ openDB สำเร็จ
+       → ทุก op มี timeout 2s กันหน้าค้าง (เขียนไม่สำเร็จก็แค่ไม่เซฟรอบนั้น) */
     function idbGet(k) {
-        if (!idb) return Promise.resolve(undefined);   // in-memory fallback
+        if (!idb) return Promise.resolve(undefined);
         return new Promise((res) => {
+            let s = false; const done = (v) => { if (!s) { s = true; res(v); } };
             try {
                 const r = idb.transaction(STORE, "readonly").objectStore(STORE).get(k);
-                r.onsuccess = () => res(r.result); r.onerror = () => res(undefined);
-            } catch (e) { res(undefined); }
+                r.onsuccess = () => done(r.result); r.onerror = () => done(undefined);
+            } catch (e) { return done(undefined); }
+            setTimeout(() => done(undefined), 2000);
         });
     }
     function idbPut(k, v) {
-        if (!idb) return Promise.resolve();             // in-memory: เขียนข้ามไปเงียบๆ
+        if (!idb) return Promise.resolve();
         return new Promise((res) => {
+            let s = false; const done = () => { if (!s) { s = true; res(); } };
             try {
                 const r = idb.transaction(STORE, "readwrite").objectStore(STORE).put(v, k);
-                r.onsuccess = () => res(); r.onerror = () => res();
-            } catch (e) { res(); }
+                r.onsuccess = done; r.onerror = done;
+            } catch (e) { return done(); }
+            setTimeout(done, 2000);
         });
     }
 
