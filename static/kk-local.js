@@ -25,25 +25,40 @@ const KK = (() => {
 
     let content = null, board = null, state = null, idb = null;
 
-    /* ---------- IndexedDB (เก็บ state ก้อนเดียว อ่านตอนเปิด เขียนตอนเปลี่ยน) ---------- */
+    /* ---------- IndexedDB (เก็บ state ก้อนเดียว อ่านตอนเปิด เขียนตอนเปลี่ยน) ----------
+       iOS Safari (โดยเฉพาะ PWA standalone) มีบั๊ก: indexedDB.open() บางครั้งแขวน
+       ไม่ยิง event เลย → ทำ timeout ไว้ ถ้าเกิน 3.5s ถือว่าพัง แล้วเล่นแบบ in-memory
+       (แอปใช้ได้ปกติ แค่ความคืบหน้าไม่เซฟข้ามการเปิดใหม่รอบนั้น) */
     function openDB() {
         return new Promise((res, rej) => {
-            const rq = indexedDB.open(DB_NAME, 1);
-            rq.onupgradeneeded = () => rq.result.createObjectStore(STORE);
-            rq.onsuccess = () => res(rq.result);
-            rq.onerror = () => rej(rq.error);
+            let settled = false;
+            const done = (fn, v) => { if (!settled) { settled = true; fn(v); } };
+            let rq;
+            try { rq = indexedDB.open(DB_NAME, 1); }
+            catch (e) { return rej(e); }
+            rq.onupgradeneeded = () => { try { rq.result.createObjectStore(STORE); } catch (e) {} };
+            rq.onsuccess = () => done(res, rq.result);
+            rq.onerror = () => done(rej, rq.error);
+            rq.onblocked = () => done(rej, new Error("idb blocked"));
+            setTimeout(() => done(rej, new Error("idb open timeout")), 3500);
         });
     }
     function idbGet(k) {
-        return new Promise((res, rej) => {
-            const r = idb.transaction(STORE, "readonly").objectStore(STORE).get(k);
-            r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+        if (!idb) return Promise.resolve(undefined);   // in-memory fallback
+        return new Promise((res) => {
+            try {
+                const r = idb.transaction(STORE, "readonly").objectStore(STORE).get(k);
+                r.onsuccess = () => res(r.result); r.onerror = () => res(undefined);
+            } catch (e) { res(undefined); }
         });
     }
     function idbPut(k, v) {
-        return new Promise((res, rej) => {
-            const r = idb.transaction(STORE, "readwrite").objectStore(STORE).put(v, k);
-            r.onsuccess = () => res(); r.onerror = () => rej(r.error);
+        if (!idb) return Promise.resolve();             // in-memory: เขียนข้ามไปเงียบๆ
+        return new Promise((res) => {
+            try {
+                const r = idb.transaction(STORE, "readwrite").objectStore(STORE).put(v, k);
+                r.onsuccess = () => res(); r.onerror = () => res();
+            } catch (e) { res(); }
         });
     }
 
@@ -420,10 +435,17 @@ const KK = (() => {
     }
 
     async function init() {
-        idb = await openDB();
-        state = (await idbGet(KEY)) || blank();
+        // IndexedDB เป็น optional — เปิดไม่ได้/แขวน ก็เล่นแบบ in-memory ได้ (ไม่ค้าง)
+        idb = null;
+        for (let attempt = 0; attempt < 2 && !idb; attempt++) {
+            try { idb = await openDB(); }
+            catch (e) { idb = null; }        // ลองซ้ำอีกครั้ง (บั๊ก iOS มักหายรอบสอง)
+        }
+        try { state = (await idbGet(KEY)) || blank(); }
+        catch (e) { state = blank(); }
         for (const k of Object.keys(blank())) if (!(k in state)) state[k] = blank()[k];
 
+        // เนื้อหาต้องโหลดให้ได้เพื่อให้ UI ขึ้น — ไม่ผูกกับ IDB
         const base = document.querySelector("base")?.getAttribute("href") || "";
         [content, board] = await Promise.all([
             fetch(base + "data/content.json").then(r => r.json()),
@@ -432,7 +454,7 @@ const KK = (() => {
         indexContent();
 
         // ขอให้เบราว์เซอร์อย่าลบข้อมูลเราตอนเครื่องพื้นที่เหลือน้อย
-        if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
+        if (idb && navigator.storage?.persist) navigator.storage.persist().catch(() => {});
         return true;
     }
 
